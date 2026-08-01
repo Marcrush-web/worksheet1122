@@ -106,9 +106,10 @@
     -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity; scroll-behavior:smooth;
   }
   /* scrollbar สวยแบบ Padlet */
-  .board-shelf::-webkit-scrollbar{height:10px;}
-  .board-shelf::-webkit-scrollbar-thumb{background:var(--border); border-radius:999px;}
-  .board-shelf::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+  .board-shelf::-webkit-scrollbar{height:12px;}
+  .board-shelf::-webkit-scrollbar-track{background:var(--surface); border-radius:999px;}
+  .board-shelf::-webkit-scrollbar-thumb{background:var(--muted); border-radius:999px; border:2px solid var(--surface);}
+  .board-shelf::-webkit-scrollbar-thumb:hover{background:var(--accent);}
   .board-column{
     flex:0 0 340px; width:340px; background:var(--surface); border:1px solid var(--border); border-radius:18px;
     padding:0; display:flex; flex-direction:column; max-height:calc(100vh - 260px); scroll-snap-align:start;
@@ -181,8 +182,10 @@
   }
   .board-shelf-horizontal .board-column-cards .post-card{flex:0 0 300px; width:300px; scroll-snap-align:start;}
   .board-shelf-horizontal .board-column-empty{flex:0 0 auto; width:100%; padding:24px;}
-  .board-shelf-horizontal .board-column-cards::-webkit-scrollbar{height:8px;}
-  .board-shelf-horizontal .board-column-cards::-webkit-scrollbar-thumb{background:var(--border); border-radius:999px;}
+  .board-shelf-horizontal .board-column-cards::-webkit-scrollbar{height:12px;}
+  .board-shelf-horizontal .board-column-cards::-webkit-scrollbar-track{background:var(--surface); border-radius:999px;}
+  .board-shelf-horizontal .board-column-cards::-webkit-scrollbar-thumb{background:var(--muted); border-radius:999px; border:2px solid var(--surface);}
+  .board-shelf-horizontal .board-column-cards::-webkit-scrollbar-thumb:hover{background:var(--accent);}
   .board-shelf-horizontal .board-column-new{width:100%; min-height:60px; flex:0 0 auto;}
   @media(max-width:600px){
     .board-shelf-horizontal .board-column-cards .post-card{flex:0 0 78vw; width:78vw;}
@@ -205,7 +208,7 @@
     display:flex; flex-direction:column; gap:14px; overflow-y:auto; overflow-x:hidden;
     padding:14px; flex:1 1 auto;
   }
-  .board-column-cards .post-card{width:100%;}
+  .board-column-cards .post-card{width:100%; flex:0 0 auto;}
   .board-column-empty{
     color:var(--muted); text-align:center; padding:40px 16px;
     display:flex; flex-direction:column; align-items:center; gap:6px;
@@ -248,22 +251,24 @@
   .masonry-view{columns:4 220px; column-gap:16px;}
   .masonry-view .post-card{display:inline-block; width:100%; margin-bottom:16px;}
   @media(max-width:600px){.masonry-view{columns:2 160px;}}
-  .post-card{position:relative; background:var(--card); border-radius:18px; overflow:hidden; box-shadow:0 2px 12px rgba(42,45,69,.08); break-inside:avoid; transition:.2s box-shadow, .2s transform;}
-  .post-card:hover{box-shadow:0 10px 28px rgba(42,45,69,.15); transform:translateY(-3px);}
-  [data-theme="dark"] .post-card{box-shadow:0 2px 12px rgba(0,0,0,.35);}
+  .post-card{position:relative; background:var(--card); border:1.5px solid var(--border); border-radius:18px; overflow:hidden; box-shadow:0 3px 12px rgba(42,45,69,.14); break-inside:avoid; transition:.2s box-shadow, .2s transform;}
+  .post-card:hover{box-shadow:0 10px 28px rgba(42,45,69,.2); transform:translateY(-3px);}
+  [data-theme="dark"] .post-card{box-shadow:0 2px 12px rgba(0,0,0,.4); border-color:rgba(255,255,255,.12); background:#252b3d;}
+  .post-card .body{padding:14px 16px 12px;}
+  .post-card .body h4{min-height:1.2em;}
   /* แถบ source ด้านบน (favicon + โดเมน) แบบ Padlet */
-  .card-source{display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--surface); text-decoration:none; color:inherit; border-bottom:1px solid var(--border);}
-  .card-source img, .card-source .card-source-icon{width:28px; height:28px; border-radius:7px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:1.3rem; background:var(--card);}
+  .card-source{display:flex; align-items:center; gap:10px; padding:12px 14px; min-height:52px; box-sizing:border-box; background:var(--surface); text-decoration:none; color:inherit; border-bottom:1px solid var(--border);}
+  .card-source img, .card-source .card-source-icon{width:28px; height:28px; min-width:28px; border-radius:7px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:1.1rem; background:var(--card); border:1px solid var(--border);}
   .card-source-text{overflow:hidden;}
   .card-source-text b{display:block; font-size:.82rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .card-source-text span{font-size:.7rem; color:var(--muted);}
   /* Thumbnail อัตราส่วนคงที่ 16:9 */
   .card-thumb{width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; margin:4px 0 10px; background:var(--surface);}
   .card-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
-  .post-card .body{padding:14px 16px 12px;}
   .post-card .tagpill{display:inline-block; font-size:.72rem; font-weight:500; background:rgba(46,107,230,.10); color:var(--accent); padding:4px 11px; border-radius:999px; margin-bottom:8px;}
   [data-theme="dark"] .post-card .tagpill{background:rgba(77,150,255,.18);}
   .post-card h4{font-size:1.05rem; font-weight:600; margin-bottom:5px; line-height:1.35;}
+  .student-no{display:inline-block; background:var(--brand); color:#3D2400; font-size:.72rem; font-weight:700; padding:1px 8px; border-radius:6px; vertical-align:middle;}
   .post-card p{font-size:.85rem; color:var(--muted); margin-bottom:10px; line-height:1.5;}
   .post-card .foot{display:flex; justify-content:space-between; align-items:center; font-size:.75rem; color:var(--muted); margin-top:4px;}
   .heart-btn{border:none; background:none; cursor:pointer; font-size:1rem; display:flex; align-items:center; gap:4px; color:#FF5D8F;}
@@ -331,6 +336,19 @@
   .post-menu-item.danger{color:#E04848;}
   .post-menu-item.danger:hover{background:rgba(224,72,72,.1);}
   .pin-badge{position:absolute; top:8px; left:8px; z-index:5; font-size:1rem; filter:drop-shadow(0 1px 3px rgba(0,0,0,.35));}
+  /* ---------- ✓ ครูตรวจแล้ว ---------- */
+  .checked-badge{
+    position:absolute; top:10px; right:46px; z-index:6;
+    background:#12A150; color:#fff; font-size:.7rem; font-weight:600;
+    padding:3px 9px; border-radius:999px; box-shadow:0 2px 6px rgba(18,161,80,.35);
+  }
+  .check-btn{
+    border:1.5px solid var(--border); background:var(--surface); cursor:pointer;
+    width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:.9rem; font-weight:700; color:var(--muted); transition:.15s;
+  }
+  .check-btn:hover{border-color:#12A150; color:#12A150;}
+  .check-btn.checked{background:#12A150; border-color:#12A150; color:#fff;}
   .draggable-card .pin-badge{left:38px;} /* เลื่อนป้ายปักหมุดไปขวาของไอคอนจับลาก กันทับกัน */
   .fab{position:fixed; bottom:24px; right:24px; background:var(--brand); color:#fff; border:none; border-radius:999px; padding:16px 22px; font-size:1rem; font-weight:700; box-shadow:0 8px 24px rgba(253,184,51,.5); cursor:pointer; z-index:40;}
   /* ---------- Modal ---------- */
@@ -339,6 +357,11 @@
   .modal{background:var(--card); color:var(--text); width:100%; max-width:520px; border-radius:24px 24px 0 0; padding:24px 20px 30px; max-height:90vh; overflow-y:auto; animation:slideUp .25s ease;}
   @media(min-width:640px){.modal-overlay{align-items:center;} .modal{border-radius:24px;}}
   .modal-lg{max-width:640px;}
+  /* ---------- Dialog กลาง (confirm/prompt สวยๆ) ---------- */
+  .modal-dialog{max-width:420px;}
+  .dialog-message{color:var(--text); font-size:.95rem; line-height:1.6; margin:6px 0 16px;}
+  .dialog-input{width:100%; box-sizing:border-box; padding:11px 14px; border-radius:12px; border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-family:'Kanit',sans-serif; font-size:.95rem; margin-bottom:16px;}
+  .dialog-input:focus{outline:none; border-color:var(--brand);}
   /* ---------- Cover Picker ---------- */
   .cover-picker-tabs{display:flex; gap:8px; margin:8px 0 16px; border-bottom:1px solid var(--border);}
   .cp-tab{flex:1; border:none; background:none; color:var(--muted); font-family:'Kanit',sans-serif; font-size:.85rem; padding:10px; cursor:pointer; border-bottom:2px solid transparent;}
@@ -384,7 +407,12 @@
   .attach-pane.active{display:block;}
   .preview-img{max-width:100%; border-radius:12px; margin-top:8px; max-height:180px; object-fit:cover;}
   /* ---------- Admin ---------- */
-  .admin-wrap{max-width:860px; margin:0 auto; padding:24px 16px 60px;}
+  .admin-wrap{width:100%; margin:0 auto; padding:24px 24px 60px; box-sizing:border-box;}
+  /* ฟอร์มเพิ่มนักเรียน/รายการงาน อ่านง่ายกว่าถ้าไม่กว้างเกิน — จำกัดเฉพาะ section ที่เป็นฟอร์ม */
+  .ar-pane .admin-section{max-width:900px; margin-left:auto; margin-right:auto;}
+  .ar-pane .admin-section.full-width-section{max-width:100%;}
+  /* ตาราง (Dashboard, กรอกคะแนน) ให้เต็มความกว้าง */
+  .ar-pane .checklist-scroll, .ar-pane .dash-cards, .ar-pane .badge-summary-grid{max-width:100%;}
   .admin-toolbar{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap;}
   .admin-toolbar h2{font-size:1.3rem; font-weight:700;}
   .admin-toolbar .sub{font-size:.85rem; color:var(--muted); font-weight:400; display:block; margin-top:2px;}
@@ -883,6 +911,7 @@
     <h1 id="boardTitle">🏫 ห้องเรียน</h1>
     <div class="actions">
       <button class="btn btn-light" id="boardViewBtn" onclick="toggleBoardView()" style="display:none;">▤ แนวนอน</button>
+      <button class="btn btn-light" id="sortByNoBtn" onclick="sortAllByStudentNo()" style="display:none;">🔢 เรียงตามเลขที่</button>
       <button class="btn btn-light" id="boardBgBtn" onclick="openBoardBgPicker()" style="display:none;">🎨 สีพื้นบอร์ด</button>
       <button class="btn btn-light" id="boardAdminBtn" onclick="navigate('admin')" style="display:none;">🔐 แผงควบคุม</button>
       <button class="btn btn-light" id="trashBtn" onclick="openTrash()" style="display:none;">🗑️ ถังขยะ</button>
@@ -922,6 +951,12 @@
   <div class="modal">
     <button class="close-x" onclick="closeModal('modalPost')">✕</button>
     <h3 id="modalPostTitle">✨ โพสต์ผลงานของฉัน</h3>
+    <div class="field">
+      <label>เลือกเลขที่ของฉัน (แนะนำให้เลือก เพื่อให้ครูตรวจง่าย)</label>
+      <select id="inputStudentNo" onchange="onPickStudentNo()">
+        <option value="">— ยังไม่เลือก —</option>
+      </select>
+    </div>
     <div class="field">
       <label>ชื่อ-นามสกุลนักเรียน *</label>
       <input type="text" id="inputStudentName" placeholder="เช่น เด็กหญิงใจดี ตั้งใจเรียน">
@@ -1073,6 +1108,19 @@
 </div>
 
 <!-- ============ MODAL: COMMENTS (คอมเมนต์ใต้ผลงาน) ============ -->
+<!-- ============ MODAL: CONFIRM/PROMPT กลาง (แทน confirm/prompt ของเบราว์เซอร์) ============ -->
+<div id="modalDialog" class="modal-overlay">
+  <div class="modal modal-dialog">
+    <h3 id="dialogTitle">ยืนยัน</h3>
+    <p id="dialogMessage" class="dialog-message"></p>
+    <input type="text" id="dialogInput" class="dialog-input" style="display:none;">
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="dialogCancelBtn" onclick="closeDialog(false)">ยกเลิก</button>
+      <button class="btn btn-primary" id="dialogOkBtn" onclick="closeDialog(true)">ตกลง</button>
+    </div>
+  </div>
+</div>
+
 <div id="modalComments" class="modal-overlay">
   <div class="modal">
     <button class="close-x" onclick="closeModal('modalComments')">✕</button>
@@ -1267,7 +1315,7 @@
       </div>
     </div>
     <div id="arPaneScores" class="ar-pane">
-      <div class="admin-section print-target">
+      <div class="admin-section print-target full-width-section">
         <h3 class="no-print">📝 ตารางกรอกคะแนน</h3>
         <p class="hint no-print" style="margin-bottom:12px;">กรอกคะแนนแล้วกดออกจากช่อง (Tab/คลิกที่อื่น) ระบบจะบันทึกอัตโนมัติ และถือว่า "ส่งงานแล้ว" ทันที</p>
         <div id="scoreGridWrap" style="overflow-x:auto;"></div>
@@ -1330,6 +1378,7 @@ function showErrorBanner(msg, type){
    ⚙️ ตั้งค่า Supabase — แทนที่ค่าด้านล่างด้วยของโปรเจกต์คุณ
    หา URL และ anon key ได้ที่ Supabase Dashboard > Project Settings > API
    ========================================================================== */
+console.log("%c✅ Student Board — เวอร์ชันล่าสุด (การ์ดกล่องแยกชัด) 2025-08-01","color:#12A150;font-size:14px;font-weight:bold");
 const SUPABASE_URL = "https://nhedkyuhirphclwgxhta.supabase.co";        // TODO: แทนที่ด้วย Supabase Project URL
 const SUPABASE_ANON_KEY = "sb_publishable_bzzOoV3I0cXiNem40ylYVA_hiENYDXl"; // TODO: แทนที่ด้วย Supabase anon public key
 const STORAGE_BUCKET = "showcase-images";        // ชื่อ bucket (public) สำหรับเก็บรูปผลงาน
@@ -1412,7 +1461,8 @@ let state = {
   trashSections: [],
   trashPosts: [],
   boardView: localStorage.getItem("boardView") || "vertical",
-  patternColorIdx: 0
+  patternColorIdx: 0,
+  roomStudents: []
 };
 
 /* ---------------------------- Utilities ---------------------------- */
@@ -1503,6 +1553,47 @@ function showScreen(id){
 }
 function openModal(id){ document.getElementById(id).classList.add("active"); }
 function closeModal(id){ document.getElementById(id).classList.remove("active"); }
+
+/* ---------------------------- Dialog กลาง (แทน confirm/prompt) ---------------------------- */
+let _dialogResolve = null;
+// showConfirm: คืน true/false | showPrompt: คืน string ที่กรอก หรือ null ถ้ายกเลิก
+function showConfirm(message, opts={}){
+  return openDialog({ message, title: opts.title || "ยืนยัน", okText: opts.okText || "ตกลง", cancelText: opts.cancelText || "ยกเลิก", danger: opts.danger, input: false });
+}
+function showPrompt(message, defaultValue="", opts={}){
+  return openDialog({ message, title: opts.title || "กรอกข้อมูล", okText: opts.okText || "บันทึก", cancelText: opts.cancelText || "ยกเลิก", input: true, defaultValue });
+}
+function openDialog({ message, title, okText, cancelText, danger, input, defaultValue }){
+  return new Promise(resolve=>{
+    _dialogResolve = resolve;
+    document.getElementById("dialogTitle").textContent = title;
+    document.getElementById("dialogMessage").innerHTML = escapeHtml(message).replace(/\n/g,"<br>");
+    const inp = document.getElementById("dialogInput");
+    if(input){
+      inp.style.display = "block";
+      inp.value = defaultValue || "";
+      setTimeout(()=>{ inp.focus(); inp.select(); }, 100);
+      inp.onkeydown = (e)=>{ if(e.key==="Enter") closeDialog(true); };
+    } else {
+      inp.style.display = "none";
+      inp.onkeydown = null;
+    }
+    const okBtn = document.getElementById("dialogOkBtn");
+    okBtn.textContent = okText;
+    okBtn.className = danger ? "btn btn-danger" : "btn btn-primary";
+    document.getElementById("dialogCancelBtn").textContent = cancelText;
+    openModal("modalDialog");
+  });
+}
+function closeDialog(ok){
+  const inp = document.getElementById("dialogInput");
+  const isInput = inp.style.display !== "none";
+  closeModal("modalDialog");
+  if(_dialogResolve){
+    const r = _dialogResolve; _dialogResolve = null;
+    r(isInput ? (ok ? inp.value : null) : ok);
+  }
+}
 function enterApp(){
   try{
     const toggle = document.getElementById("themeToggle");
@@ -1740,6 +1831,8 @@ async function openClassroom(id){
   if(trashBtn) trashBtn.style.display = state.isAdmin ? "inline-block" : "none";
   const boardBgBtn = document.getElementById("boardBgBtn");
   if(boardBgBtn) boardBgBtn.style.display = state.isAdmin ? "inline-block" : "none";
+  const sortByNoBtn = document.getElementById("sortByNoBtn");
+  if(sortByNoBtn) sortByNoBtn.style.display = state.isAdmin ? "inline-block" : "none";
   const boardAdminBtn = document.getElementById("boardAdminBtn");
   if(boardAdminBtn) boardAdminBtn.style.display = state.isAdmin ? "inline-block" : "none";
   document.getElementById("tabBoardBtn").classList.add("active");
@@ -1748,7 +1841,16 @@ async function openClassroom(id){
   document.getElementById("paneChecklist").classList.remove("active");
   showScreen("screen-board");
   renderFilterBar();
+  // โหลดรายชื่อนักเรียนของห้องนี้ไว้ (ใช้ใน dropdown เลือกเลขที่ตอนโพสต์ + เรียงตามเลขที่)
+  loadRoomStudents();
   await loadPosts();
+}
+// โหลดรายชื่อนักเรียนของห้องปัจจุบัน เรียงตามลำดับ (= เลขที่)
+async function loadRoomStudents(){
+  const { data } = await supabaseClient.from("students").select("*")
+    .eq("classroom_id", state.currentClassroom.id).order("order_index",{ascending:true});
+  // เก็บพร้อมเลขที่ (ลำดับในรายชื่อ +1 = เลขที่)
+  state.roomStudents = (data||[]).map((s,i)=>({ ...s, no: i+1 }));
 }
 function switchClassroomTab(tab){
   state.classroomTab = tab;
@@ -1957,6 +2059,33 @@ function getCardAfterCursor(container, y){
     if(offset < 0 && offset > closest.offset) return { offset, element: child };
     return closest;
   }, { offset: Number.NEGATIVE_INFINITY }).element || null;
+}
+// ครูกดเรียงงานทุกคอลัมน์ตามเลขที่นักเรียน (การ์ดไม่มีเลขที่ไปอยู่ท้ายสุด)
+async function sortAllByStudentNo(){
+  if(!state.isAdmin) return;
+  if(!(await showConfirm("เรียงงานทุกคอลัมน์ตามเลขที่นักเรียน?\n(งานที่ปักหมุดยังอยู่บนสุด งานที่ไม่ได้เลือกเลขที่จะไปอยู่ท้าย)"))) return;
+  showToast("กำลังเรียงตามเลขที่...");
+  const updates = [];
+  // เรียงทีละคอลัมน์
+  state.sections.forEach(sec=>{
+    const cards = state.posts.filter(p=>p.section_id===sec.id && !p.pinned);
+    cards.sort((a,b)=>{
+      // ไม่มีเลขที่ = ไปท้าย
+      const an = a.student_no==null ? Infinity : a.student_no;
+      const bn = b.student_no==null ? Infinity : b.student_no;
+      if(an!==bn) return an-bn;
+      return new Date(a.created_at) - new Date(b.created_at); // เลขที่ซ้ำ เรียงตามเวลาโพสต์
+    });
+    cards.forEach((p, idx)=>{
+      const newOrder = (idx+1)*1000;
+      p.sort_order = newOrder;
+      updates.push(supabaseClient.from("posts").update({ sort_order: newOrder }).eq("id", p.id));
+    });
+  });
+  const results = await Promise.all(updates);
+  if(results.some(r=>r.error)){ showErr("เรียงไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 12/17)", results.find(r=>r.error).error); return; }
+  showToast("เรียงตามเลขที่แล้ว ✅");
+  await refreshPostsSilently();
 }
 async function onColumnDrop(e, targetSectionId){
   e.preventDefault();
@@ -2187,7 +2316,7 @@ async function restorePost(postId){
 }
 // ลบถาวร (ลบจริงจาก DB + ไฟล์ใน Storage)
 async function purgeSection(sectionId){
-  if(!confirm("ลบคอลัมน์นี้ถาวร? งานข้างในจะถูกลบถาวรด้วย กู้คืนไม่ได้อีก")) return;
+  if(!(await showConfirm("ลบคอลัมน์นี้ถาวร? งานข้างในจะถูกลบถาวรด้วย กู้คืนไม่ได้อีก"))) return;
   const posts = (state.trashPosts||[]).filter(p=>p.deleted_section_id===sectionId);
   const paths = [];
   posts.forEach(p=>{ const i=extractStoragePath(p.image_url); const f=extractStoragePath(p.file_url); if(i)paths.push(i); if(f)paths.push(f); });
@@ -2198,7 +2327,7 @@ async function purgeSection(sectionId){
   await openTrash();
 }
 async function purgePost(postId){
-  if(!confirm("ลบผลงานนี้ถาวร? กู้คืนไม่ได้อีก")) return;
+  if(!(await showConfirm("ลบผลงานนี้ถาวร? กู้คืนไม่ได้อีก"))) return;
   const post = (state.trashPosts||[]).find(p=>p.id===postId);
   if(post){
     const paths = [];
@@ -2215,7 +2344,7 @@ async function deleteSection(sectionId){
   closeAllSectionMenus();
   const sec = state.sections.find(s=>s.id===sectionId);
   const cardCount = state.posts.filter(p=>p.section_id===sectionId).length;
-  if(!confirm(`ลบคอลัมน์ "${sec?.title||""}" พร้อมผลงาน ${cardCount} ชิ้น?\n\nงานทั้งหมดจะถูกเก็บในถังขยะ 🗑️ กู้คืนได้ภายหลัง`)) return;
+  if(!(await showConfirm(`ลบคอลัมน์ "${sec?.title||""}" พร้อมผลงาน ${cardCount} ชิ้น?\n\nงานทั้งหมดจะถูกเก็บในถังขยะ 🗑️ กู้คืนได้ภายหลัง`))) return;
   const now = new Date().toISOString();
   // ทิ้งงานทุกชิ้นในคอลัมน์ลงถังขยะ (จำ section เดิมไว้กู้กลับ) + ทิ้งคอลัมน์ลงถังขยะ
   const [r1, r2] = await Promise.all([
@@ -2254,7 +2383,7 @@ function postCardHtml(p, sectionTag){
   if(p.link_url){
     const domain = extractDomain(p.link_url);
     sourceBar = `<a href="${p.link_url}" target="_blank" rel="noopener" class="card-source">
-      <img src="https://www.google.com/s2/favicons?sz=64&domain=${domain}" alt="" loading="lazy">
+      <img src="https://www.google.com/s2/favicons?sz=64&domain=${domain}" alt="" loading="lazy" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'card-source-icon',textContent:'🔗'}))">
       <div class="card-source-text"><b>${escapeHtml(domain)}</b><span>🔗 เปิดลิงก์ผลงาน</span></div>
     </a>`;
   } else if(p.file_url){
@@ -2264,9 +2393,9 @@ function postCardHtml(p, sectionTag){
     </a>`;
   }
 
-  // Thumbnail (เฉพาะรูป) — อัตราส่วนคงที่ 16:9 ไม่ยืดเบี้ยว
+  // Thumbnail (เฉพาะรูป) — อัตราส่วนคงที่ 16:9 ไม่ยืดเบี้ยว (ถ้ารูปเสียให้ซ่อน กันช่องว่างเปล่า)
   const thumb = p.image_url
-    ? `<div class="card-thumb"><img src="${p.image_url}" loading="lazy" alt="ผลงานของ ${escapeHtml(p.student_name)}"></div>`
+    ? `<div class="card-thumb"><img src="${p.image_url}" loading="lazy" alt="ผลงานของ ${escapeHtml(p.student_name)}" onerror="this.parentElement.style.display='none'"></div>`
     : "";
 
   return `
@@ -2284,15 +2413,17 @@ function postCardHtml(p, sectionTag){
       </div>
     </div>
     ${p.pinned ? `<span class="pin-badge" title="ปักหมุดโดยครู">📌</span>` : ""}
+    ${p.checked ? `<span class="checked-badge" title="ครูตรวจแล้ว">✓ ตรวจแล้ว</span>` : ""}
     ${sourceBar}
     <div class="body">
       ${badgeTag ? `<span class="tagpill">${escapeHtml(badgeTag)}</span>` : ""}
-      <h4>${escapeHtml(p.student_name)}${postStudentBadges(p.student_name)}</h4>
+      <h4>${p.student_no ? `<span class="student-no">เลขที่ ${p.student_no}</span> ` : ""}${escapeHtml(p.student_name) || "ผลงานนักเรียน"}${postStudentBadges(p.student_name)}</h4>
       ${p.description ? `<p>${escapeHtml(p.description)}</p>` : ""}
       ${thumb}
       <div class="foot">
         <span>${timeAgo(p.created_at)}</span>
         <div class="foot-actions">
+          ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="toggleChecked('${p.id}', this)" title="${p.checked?'ยกเลิกตรวจแล้ว':'ทำเครื่องหมายว่าตรวจแล้ว'}">✓</button>` : ""}
           <button class="heart-btn ${liked}" onclick="toggleLike('${p.id}', this)">❤️ <span>${p.likes||0}</span></button>
           <button class="comment-btn" onclick="openComments('${p.id}')">💬 <span>${p.comment_count||0}</span></button>
         </div>
@@ -2379,7 +2510,7 @@ async function submitComment(){
   await refreshPostsSilently();
 }
 async function deleteComment(commentId){
-  if(!confirm("ลบความคิดเห็นนี้?")) return;
+  if(!(await showConfirm("ลบความคิดเห็นนี้?"))) return;
   const postId = document.getElementById("commentPostId").value;
   const { error } = await supabaseClient.from("comments").delete().eq("id", commentId);
   if(error){ showErr("ลบไม่สำเร็จ", error); return; }
@@ -2387,6 +2518,18 @@ async function deleteComment(commentId){
   await refreshPostsSilently();
 }
 
+// ครูติ๊กว่าตรวจงานนี้แล้ว / ยกเลิก
+async function toggleChecked(postId, btn){
+  if(!state.isAdmin) return; // กันไว้อีกชั้น เฉพาะครูเท่านั้น
+  const post = state.posts.find(p=>p.id===postId);
+  if(!post) return;
+  const newChecked = !post.checked;
+  const { error } = await supabaseClient.from("posts").update({ checked: newChecked }).eq("id", postId);
+  if(error){ showErr("บันทึกไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 16)", error); return; }
+  post.checked = newChecked;
+  showToast(newChecked ? "ทำเครื่องหมายตรวจแล้ว ✓" : "ยกเลิกตรวจแล้ว");
+  await refreshPostsSilently();
+}
 async function togglePinPost(postId){
   closeAllPostMenus();
   const post = state.posts.find(p=>p.id===postId);
@@ -2513,7 +2656,9 @@ function filterChecklist(keyword){
 }
 
 function drawChecklist(keyword){
-  const { students, assignments, subs } = state.checklistData;
+  const { students, subs } = state.checklistData;
+  // เรียงงานให้ชิ้นที่ 1 อยู่ซ้ายสุด (สลับทางเดียวกับหน้ากรอกคะแนน เพื่อให้ทั้ง 2 หน้าเรียงตรงกัน)
+  const assignments = [...state.checklistData.assignments].reverse();
   const submitted = new Set(subs.filter(s=>s.score!==null && s.score!==undefined).map(s=>s.student_id+"_"+s.assignment_id));
 
   // สถิติภาพรวมคำนวณจากนักเรียน "ทั้งห้อง" เสมอ (ไม่ผูกกับผลการค้นหา)
@@ -2609,6 +2754,7 @@ function openPostForm(sectionId){
   document.getElementById("submitPostBtn").textContent = "🚀 โพสต์เลย";
   document.getElementById("inputStudentName").value = "";
   document.getElementById("inputDesc").value = "";
+  fillStudentNoDropdown("");
   document.getElementById("inputLink").value = "";
   document.getElementById("inputImage").value = "";
   document.getElementById("inputFile").value = "";
@@ -2623,6 +2769,21 @@ function openPostForm(sectionId){
     `<div class="chip ${t===selectedTag?'active':''}" onclick="pickTag('${t}')">${t}</div>`).join("");
   openModal("modalPost");
 }
+// เติมตัวเลือกเลขที่ลง dropdown (เรียงตามเลขที่) + เลือกค่าปัจจุบัน
+function fillStudentNoDropdown(currentNo){
+  const sel = document.getElementById("inputStudentNo");
+  const students = state.roomStudents || [];
+  let opts = '<option value="">— ยังไม่เลือก —</option>';
+  opts += students.map(s=>`<option value="${s.no}" ${String(s.no)===String(currentNo)?"selected":""}>เลขที่ ${s.no} — ${escapeHtml(s.name)}</option>`).join("");
+  sel.innerHTML = opts;
+}
+// เมื่อเลือกเลขที่ -> เติมชื่อจากรายชื่อให้อัตโนมัติ (นักเรียนไม่ต้องพิมพ์)
+function onPickStudentNo(){
+  const no = document.getElementById("inputStudentNo").value;
+  if(!no) return;
+  const student = (state.roomStudents||[]).find(s=>String(s.no)===String(no));
+  if(student){ document.getElementById("inputStudentName").value = student.name; }
+}
 // เปิดฟอร์มเดิมในโหมดแก้ไข พร้อมเติมข้อมูลเดิมลงไป (Phase 1)
 function editPost(postId){
   closeAllPostMenus();
@@ -2634,6 +2795,7 @@ function editPost(postId){
   document.getElementById("submitPostBtn").textContent = "💾 บันทึกการแก้ไข";
   document.getElementById("inputStudentName").value = p.student_name || "";
   document.getElementById("inputDesc").value = p.description || "";
+  fillStudentNoDropdown(p.student_no || "");
   document.getElementById("inputLink").value = p.link_url || "";
   document.getElementById("inputImage").value = "";
   document.getElementById("inputFile").value = "";
@@ -2926,7 +3088,7 @@ async function handleCoverUpload(input){
   showToast("เปลี่ยนพื้นหลังห้องแล้ว ✅");
 }
 async function removeCoverImage(){
-  if(!confirm("ลบพื้นหลังห้องนี้? จะกลับไปใช้สีธีมห้องแทน")) return;
+  if(!(await showConfirm("ลบพื้นหลังห้องนี้? จะกลับไปใช้สีธีมห้องแทน"))) return;
   const room = state.currentClassroom;
   const oldPath = extractStoragePath(room.cover_image_url);
   const { error } = await supabaseClient.from("classrooms").update({ cover_image_url: null }).eq("id", room.id);
@@ -2988,9 +3150,13 @@ async function submitPost(){
     file_name = selectedFile.name;
   }
 
+  const studentNoRaw = document.getElementById("inputStudentNo").value;
+  const student_no = studentNoRaw ? parseInt(studentNoRaw, 10) : null;
+
   const payload = {
     classroom_id: room.id,
     student_name: name,
+    student_no: student_no,
     tag: selectedTag,
     description: desc,
     image_url: image_url,
@@ -3007,6 +3173,7 @@ async function submitPost(){
     const old = state.posts.find(p=>p.id===state.editingPostId) || {};
     const updatePayload = {
       student_name: name,
+      student_no: student_no,
       tag: selectedTag,
       description: desc,
       section_id: state.pendingSectionId || null,
@@ -3057,8 +3224,8 @@ function adminLogin(){
   }
 }
 // ออกจากระบบ Admin -> กลับเป็นมุมมองนักเรียน
-function adminLogout(){
-  if(!confirm("ออกจากระบบครู? จะกลับเป็นมุมมองนักเรียนปกติ")) return;
+async function adminLogout(){
+  if(!(await showConfirm("ออกจากระบบครู? จะกลับเป็นมุมมองนักเรียนปกติ"))) return;
   state.isAdmin = false;
   clearAdminSession();
   updateHomeAdminButtons();
@@ -3294,7 +3461,7 @@ async function addClassroom(){
   renderAdminRoomList();
 }
 // เปิด Modal แก้ไขห้องเรียน พร้อมเติมข้อมูลเดิม
-function editClassroom(id){
+async function editClassroom(id){
   const room = state.classrooms.find(c=>c.id===id);
   if(!room) return;
   document.getElementById("editRoomId").value = room.id;
@@ -3321,7 +3488,7 @@ async function saveEditClassroom(){
 async function duplicateClassroom(id){
   const room = state.classrooms.find(c=>c.id===id);
   if(!room) return;
-  const newName = prompt("ตั้งชื่อห้องใหม่:", `${room.name} (สำเนา)`);
+  const newName = await showPrompt("ตั้งชื่อห้องใหม่:", `${room.name} (สำเนา)`);
   if(newName===null || !newName.trim()) return;
   showToast("กำลังคัดลอกห้องเรียน...");
 
@@ -3352,7 +3519,7 @@ async function duplicateClassroom(id){
   renderAdminRoomList();
 }
 async function deleteClassroom(id){
-  if(!confirm("ลบห้องเรียนนี้? โพสต์ทั้งหมดในห้องจะถูกลบด้วย")) return;
+  if(!(await showConfirm("ลบห้องเรียนนี้? โพสต์ทั้งหมดในห้องจะถูกลบด้วย"))) return;
   const room = state.classrooms.find(c=>c.id===id);
   // กวาดล้างไฟล์ทั้งหมดของห้องนี้ใน Storage ก่อนลบข้อมูล (รูปผลงาน + เอกสารแนบ + พื้นหลังห้อง) กันพื้นที่เต็ม
   const [{ data: imgFiles }, { data: docFiles }] = await Promise.all([
@@ -3374,7 +3541,7 @@ async function deleteClassroom(id){
 }
 
 async function deletePost(id){
-  if(!confirm("ลบผลงานนี้?")) return;
+  if(!(await showConfirm("ลบผลงานนี้?"))) return;
   // หา path ของรูป/ไฟล์แนบก่อนลบข้อมูล เพื่อเอาไปลบไฟล์จริงทิ้งด้วย กันพื้นที่ Storage เต็ม
   const post = state.posts.find(p=>p.id===id);
   const pathsToRemove = [];
@@ -3485,7 +3652,7 @@ async function addStudentsBulk(){
 }
 async function renameStudent(id){
   const st = state.students.find(s=>s.id===id);
-  const newName = prompt("ชื่อนักเรียนใหม่:", st.name);
+  const newName = await showPrompt("ชื่อนักเรียนใหม่:", st.name);
   if(newName===null || !newName.trim()) return;
   const { error } = await supabaseClient.from("students").update({ name: newName.trim() }).eq("id", id);
   if(error){ showErr("แก้ไขไม่สำเร็จ", error); return; }
@@ -3493,7 +3660,7 @@ async function renameStudent(id){
   await loadAdminRoomData();
 }
 async function deleteStudent(id){
-  if(!confirm("ลบนักเรียนคนนี้? คะแนน/สถานะส่งงานของนักเรียนคนนี้จะถูกลบด้วย")) return;
+  if(!(await showConfirm("ลบนักเรียนคนนี้? คะแนน/สถานะส่งงานของนักเรียนคนนี้จะถูกลบด้วย"))) return;
   const { error } = await supabaseClient.from("students").delete().eq("id", id);
   if(error){ showErr("ลบไม่สำเร็จ", error); return; }
   showToast("ลบแล้ว");
@@ -3622,7 +3789,7 @@ async function saveEditAssignment(){
   await loadAdminRoomData();
 }
 async function deleteAssignment(id){
-  if(!confirm("ลบงานนี้? คะแนนของงานนี้ทุกคนจะถูกลบด้วย")) return;
+  if(!(await showConfirm("ลบงานนี้? คะแนนของงานนี้ทุกคนจะถูกลบด้วย"))) return;
   const { error } = await supabaseClient.from("assignments").delete().eq("id", id);
   if(error){ showErr("ลบไม่สำเร็จ", error); return; }
   showToast("ลบแล้ว");
