@@ -586,6 +586,20 @@
   .mark-yes{color:var(--green); font-size:1.1rem;}
   .mark-no{color:var(--border); font-size:1.1rem;}
   .progress-pill{font-size:.7rem; padding:2px 8px; border-radius:999px; background:var(--surface); color:var(--muted); display:inline-block; margin-top:3px;}
+  /* ⚠️ ต้องสอบแก้ (ส่งแล้วแต่คะแนนไม่ถึงเกณฑ์ผ่าน) — ฝั่งนักเรียน */
+  .mark-retake{display:inline-flex; flex-direction:column; align-items:center; gap:1px; color:#E5484D; font-size:1.05rem; line-height:1;}
+  .retake-label{font-size:.6rem; font-weight:700; letter-spacing:.3px;}
+  .progress-pill.pill-retake{background:#FDECEC; color:#C11C22; font-weight:700;}
+  tr.row-need-retake td{background:rgba(229,72,77,.05);}
+  tr.row-need-retake td:first-child{background:#FFF5F5; box-shadow:inset 3px 0 0 #E5484D, 2px 0 6px rgba(0,0,0,.1);}
+  .dash-card-retake{border-color:#F5B5B7; background:linear-gradient(180deg,#FFF5F5,var(--card));}
+  .dash-card-retake .num{color:#C11C22;}
+  [data-theme="dark"] .mark-retake{color:#FF8A8D;}
+  [data-theme="dark"] .progress-pill.pill-retake{background:rgba(229,72,77,.18); color:#FFB4B6;}
+  [data-theme="dark"] tr.row-need-retake td{background:rgba(229,72,77,.09);}
+  [data-theme="dark"] tr.row-need-retake td:first-child{background:rgba(229,72,77,.16); box-shadow:inset 3px 0 0 #E5484D, 2px 0 6px rgba(0,0,0,.3);}
+  [data-theme="dark"] .dash-card-retake{border-color:rgba(229,72,77,.45); background:linear-gradient(180deg,rgba(229,72,77,.14),var(--card));}
+  [data-theme="dark"] .dash-card-retake .num{color:#FF8A8D;}
   /* ---------- Score grid (admin) ---------- */
   table.score-table{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%;}
   table.score-table th, table.score-table td{padding:8px 10px; border-bottom:1px solid var(--border); text-align:center; color:var(--text); white-space:nowrap;}
@@ -600,6 +614,11 @@
   /* 🎯 ไม่ผ่านเกณฑ์ (เช่น คะแนนสอบกลางภาคไม่ถึงเกณฑ์) — ขึ้นสีแดงเตือนชัดเจน แรงกว่าสีเขียวปกติ */
   table.score-table input.below-pass{background:#FDECEC !important; border-color:#E5484D !important; color:#7A1F23 !important; font-weight:700;}
   table.score-table input.below-pass:focus{outline:2px solid #E5484D;}
+  /* แถบสรุปเตือนคนที่ยังไม่ผ่านเกณฑ์ เหนือตารางคะแนน */
+  .below-pass-banner{background:#FDECEC; border:1.5px solid #F5B5B7; color:#7A1F23; border-radius:12px; padding:11px 16px; margin-bottom:12px; font-size:.88rem; line-height:1.5;}
+  .below-pass-banner b{color:#C11C22; font-weight:700;}
+  [data-theme="dark"] .below-pass-banner{background:rgba(229,72,77,.14); border-color:rgba(229,72,77,.45); color:#FFB4B6;}
+  [data-theme="dark"] .below-pass-banner b{color:#FF8A8D;}
   /* ซ่อนลูกศรเพิ่ม-ลดของ input number เฉพาะช่องกรอกคะแนน — ให้พิมพ์เลขได้เลย */
   table.score-table input::-webkit-outer-spin-button,
   table.score-table input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
@@ -611,6 +630,12 @@
   .dash-card .num{font-size:1.8rem; font-weight:700; color:var(--accent);}
   .dash-card .lbl{font-size:.8rem; color:var(--muted); margin-top:2px;}
   .dash-list-item{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:.9rem;}
+  /* ⚠️ รายการนักเรียนที่ต้องสอบแก้ (Dashboard ครู) */
+  .retake-list-item{align-items:flex-start; gap:12px;}
+  .retake-info{flex:1; min-width:0;}
+  .retake-items{display:flex; flex-wrap:wrap; gap:6px; margin-top:5px;}
+  .retake-chip{font-size:.72rem; background:#FDECEC; color:#C11C22; border:1px solid #F5B5B7; padding:2px 9px; border-radius:999px; white-space:nowrap;}
+  [data-theme="dark"] .retake-chip{background:rgba(229,72,77,.16); color:#FFB4B6; border-color:rgba(229,72,77,.4);}
   /* ---------- 🏆 ป้ายรางวัล ---------- */
   .student-badge{display:inline-block; font-size:.85rem; margin-left:2px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.15));}
   .badge-summary-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;}
@@ -2858,6 +2883,17 @@ function drawChecklist(keyword){
   });
   const pendingCount = students.length - completeCount;
 
+  // นับจำนวนคนที่มีอย่างน้อย 1 ชิ้นที่คะแนนไม่ถึงเกณฑ์ผ่าน (ต้องสอบแก้)
+  const retakeStudentIds = new Set();
+  assignments.forEach(a=>{
+    if(a.pass_score===null || a.pass_score===undefined) return;
+    students.forEach(st=>{
+      const sub = subs.find(s=>s.student_id===st.id && s.assignment_id===a.id);
+      if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score) retakeStudentIds.add(st.id);
+    });
+  });
+  const hasAnyPassRule = assignments.some(a=>a.pass_score!==null && a.pass_score!==undefined);
+
   // กรองเฉพาะแถวที่จะแสดงในตาราง ตามคำค้นหา
   const rows = keyword
     ? allRows.filter(r => r.st.name.toLowerCase().includes(keyword))
@@ -2874,6 +2910,7 @@ function drawChecklist(keyword){
       <div class="dash-card"><div class="num">${assignments.length}</div><div class="lbl">งานทั้งหมด</div></div>
       <div class="dash-card"><div class="num">${completeCount}</div><div class="lbl">ส่งครบแล้ว 🎉</div></div>
       <div class="dash-card"><div class="num">${pendingCount}</div><div class="lbl">ยังค้างงาน</div></div>
+      ${hasAnyPassRule ? `<div class="dash-card dash-card-retake"><div class="num">${retakeStudentIds.size}</div><div class="lbl">ต้องสอบแก้ ⚠️</div></div>` : ""}
     </div>
     <div class="checklist-toolbar no-print">
       <div class="search-box">
@@ -2897,20 +2934,44 @@ function drawChecklist(keyword){
 
   html += `<div class="checklist-scroll"><table class="checklist-table"><thead><tr>
       <th>ชื่อนักเรียน</th>`;
-  assignments.forEach(a=>{ html += `<th>${escapeHtml(a.title)}</th>`; });
+  assignments.forEach(a=>{
+    const passHint = (a.pass_score!==null && a.pass_score!==undefined) ? `<br><span class="score-pass-hint">🎯 ผ่าน ${a.pass_score}</span>` : "";
+    html += `<th>${escapeHtml(a.title)}${passHint}</th>`;
+  });
   html += `<th>สถานะ</th></tr></thead><tbody>`;
   rows.forEach(({st, doneCount})=>{
     const missing = assignments.length - doneCount;
     const badgeIcons = (badges.fastIds.has(st.id) ? '<span class="student-badge" title="3 คนแรกที่ส่งครบ">⚡</span>' : "")
       + (badges.perfectIds.has(st.id) ? '<span class="student-badge" title="ส่งครบทุกงาน">🎯</span>' : "");
-    let row = `<tr><td>${escapeHtml(st.name)} ${badgeIcons}</td>`;
+    // นับชิ้นที่ต้องสอบแก้ของนักเรียนคนนี้
+    let retakeCount = 0;
+    assignments.forEach(a=>{
+      if(a.pass_score===null || a.pass_score===undefined) return;
+      const sub = subs.find(s=>s.student_id===st.id && s.assignment_id===a.id);
+      if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score) retakeCount++;
+    });
+    let row = `<tr${retakeCount>0 ? ' class="row-need-retake"' : ''}><td>${escapeHtml(st.name)} ${badgeIcons}</td>`;
     assignments.forEach(a=>{
       const done = submitted.has(st.id+"_"+a.id);
-      row += `<td>${done ? '<span class="mark-yes">✅</span>' : '<span class="mark-no">⬜</span>'}</td>`;
+      const hasPassRule = a.pass_score!==null && a.pass_score!==undefined;
+      const sub = subs.find(s=>s.student_id===st.id && s.assignment_id===a.id);
+      const scoreVal = (sub && sub.score!==null && sub.score!==undefined) ? parseFloat(sub.score) : null;
+      const belowPass = hasPassRule && scoreVal!==null && scoreVal < a.pass_score;
+      if(belowPass){
+        // ⚠️ ส่งแล้วแต่คะแนนไม่ถึงเกณฑ์ = ต้องสอบแก้
+        row += `<td><span class="mark-retake" title="ได้ ${scoreVal} คะแนน · เกณฑ์ผ่าน ${a.pass_score} — ต้องสอบแก้">⚠️<span class="retake-label">สอบแก้</span></span></td>`;
+      } else {
+        row += `<td>${done ? '<span class="mark-yes">✅</span>' : '<span class="mark-no">⬜</span>'}</td>`;
+      }
     });
-    row += missing>0
-      ? `<td><span class="progress-pill" style="background:#FFE9E9; color:#E04848; font-weight:600;">ค้าง ${missing} งาน</span></td></tr>`
-      : `<td><span class="progress-pill" style="background:#EAFBEE; color:#2E9E4C; font-weight:600;">ส่งครบ 🎉</span></td></tr>`;
+    // คอลัมน์สถานะ: ต้องสอบแก้สำคัญที่สุด แสดงก่อน
+    if(retakeCount>0){
+      row += `<td><span class="progress-pill pill-retake">⚠️ ต้องสอบแก้ ${retakeCount} งาน</span></td></tr>`;
+    } else if(missing>0){
+      row += `<td><span class="progress-pill" style="background:#FFE9E9; color:#E04848; font-weight:600;">ค้าง ${missing} งาน</span></td></tr>`;
+    } else {
+      row += `<td><span class="progress-pill" style="background:#EAFBEE; color:#2E9E4C; font-weight:600;">ส่งครบ 🎉</span></td></tr>`;
+    }
     html += row;
   });
   html += `</tbody></table></div>`;
@@ -4001,11 +4062,30 @@ function renderScoreGrid(){
     wrap.innerHTML = '<div class="empty-state">ต้องมีทั้งรายชื่อนักเรียนและรายการงานก่อน ถึงจะกรอกคะแนนได้</div>';
     return;
   }
+  // นับจำนวน "ครั้ง" ที่ไม่ผ่านเกณฑ์ และจำนวนคนที่มีอย่างน้อย 1 ชิ้นไม่ผ่าน (สำหรับแถบสรุปเหนือตาราง)
+  let belowCount = 0;
+  const belowStudentIds = new Set();
+  state.assignments.forEach(a=>{
+    if(a.pass_score===null || a.pass_score===undefined) return;
+    state.students.forEach(st=>{
+      const sub = findSubmission(st.id, a.id);
+      if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score){
+        belowCount++;
+        belowStudentIds.add(st.id);
+      }
+    });
+  });
+  const hasAnyPassRule = state.assignments.some(a=>a.pass_score!==null && a.pass_score!==undefined);
+  const belowBanner = (hasAnyPassRule && belowCount>0)
+    ? `<div class="below-pass-banner no-print">⚠️ มี <b>${belowStudentIds.size}</b> คน ที่คะแนนยังไม่ถึงเกณฑ์ผ่าน (รวม <b>${belowCount}</b> ชิ้นงาน) — ช่องสีแดงคือชิ้นที่ต้องเตรียมสอบแก้</div>`
+    : "";
+
   let html = `
     <div class="print-header">
       <h2>ตารางคะแนน — ${escapeHtml(state.adminRoom ? state.adminRoom.name : "")}</h2>
       <p>พิมพ์เมื่อวันที่ ${new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' })}</p>
     </div>
+    ${belowBanner}
     <div class="no-print" style="text-align:right; margin-bottom:8px;">
       <button class="btn btn-outline" onclick="window.print()">🖨️ พิมพ์ตารางคะแนน</button>
     </div>
@@ -4057,6 +4137,34 @@ async function saveScore(studentId, assignmentId, input, maxScore){
   }
   if(error){ showErr("บันทึกคะแนนไม่สำเร็จ", error); return; }
   showToast(score===null ? "ล้างคะแนนแล้ว" : "บันทึกคะแนนแล้ว ✅");
+  refreshBelowPassBanner(); // อัปเดตแถบสรุปเท่านั้น ไม่แตะตาราง จะได้ไม่เสียโฟกัส/หน้าไม่เด้ง
+}
+// คำนวณและอัปเดตข้อความในแถบสรุป "คนที่ยังไม่ผ่านเกณฑ์" แบบสด
+function refreshBelowPassBanner(){
+  const banner = document.querySelector(".below-pass-banner");
+  const hasAnyPassRule = state.assignments.some(a=>a.pass_score!==null && a.pass_score!==undefined);
+  if(!hasAnyPassRule) return;
+  let belowCount = 0;
+  const belowStudentIds = new Set();
+  state.assignments.forEach(a=>{
+    if(a.pass_score===null || a.pass_score===undefined) return;
+    state.students.forEach(st=>{
+      const sub = findSubmission(st.id, a.id);
+      if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score){
+        belowCount++; belowStudentIds.add(st.id);
+      }
+    });
+  });
+  if(belowCount===0){ if(banner) banner.remove(); return; }
+  const msg = `⚠️ มี <b>${belowStudentIds.size}</b> คน ที่คะแนนยังไม่ถึงเกณฑ์ผ่าน (รวม <b>${belowCount}</b> ชิ้นงาน) — ช่องสีแดงคือชิ้นที่ต้องเตรียมสอบแก้`;
+  if(banner){ banner.innerHTML = msg; return; }
+  // ยังไม่มีแถบ (เพิ่งมีคนไม่ผ่านคนแรก) — สร้างใหม่วางไว้บนสุดของ pane
+  const wrap = document.getElementById("scoreGridWrap");
+  if(!wrap) return;
+  const div = document.createElement("div");
+  div.className = "below-pass-banner no-print";
+  div.innerHTML = msg;
+  wrap.insertBefore(div, wrap.firstChild);
 }
 // นำทางในตารางคะแนนด้วยแป้นลูกศร — ไม่ต้องใช้เมาส์คลิก | Enter = บันทึกแล้วอยู่ที่เดิม ไม่จำเป็นต้องกด
 // อัปเดตสถานะสี (แดง=ไม่ผ่านเกณฑ์) แบบเรียลไทม์ทันทีที่พิมพ์ ไม่ต้องรอบันทึก
@@ -4123,12 +4231,29 @@ function renderDashboard(){
   const badges = computeChecklistBadges(state.students, state.assignments, state.submissions);
   const fastNames = state.students.filter(s=>badges.fastIds.has(s.id)).map(s=>s.name);
 
+  // 🔴 คนที่ต้องสอบแก้: เก็บรายชื่อ + ชิ้นงานที่ไม่ผ่าน พร้อมคะแนนที่ได้
+  const hasAnyPassRule = state.assignments.some(a=>a.pass_score!==null && a.pass_score!==undefined);
+  const retakeMap = {}; // studentId -> { name, items:[{title, score, pass}] }
+  state.assignments.forEach(a=>{
+    if(a.pass_score===null || a.pass_score===undefined) return;
+    state.students.forEach(st=>{
+      const sub = findSubmission(st.id, a.id);
+      if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score){
+        if(!retakeMap[st.id]) retakeMap[st.id] = { name: st.name, items: [] };
+        retakeMap[st.id].items.push({ title: a.title, score: sub.score, pass: a.pass_score });
+      }
+    });
+  });
+  // เรียงคนที่ต้องสอบแก้เยอะสุดขึ้นก่อน
+  const retakeList = Object.values(retakeMap).sort((a,b)=>b.items.length - a.items.length);
+
   wrap.innerHTML = `
     <div class="dash-cards">
       <div class="dash-card"><div class="num">${totalStudents}</div><div class="lbl">นักเรียนทั้งหมด</div></div>
       <div class="dash-card"><div class="num">${totalAssignments}</div><div class="lbl">งานทั้งหมด</div></div>
       <div class="dash-card"><div class="num">${pct}%</div><div class="lbl">ส่งงานครบแล้ว</div></div>
       <div class="dash-card"><div class="num">${pendingStudents.length}</div><div class="lbl">คนที่ยังค้างงาน</div></div>
+      ${hasAnyPassRule ? `<div class="dash-card dash-card-retake"><div class="num">${retakeList.length}</div><div class="lbl">ต้องสอบแก้ ⚠️</div></div>` : ""}
     </div>
     <div class="admin-section">
       <h3>🏆 ผู้ได้รับป้ายรางวัล</h3>
@@ -4152,6 +4277,19 @@ function renderDashboard(){
         </div>` : ""}
       </div>`}
     </div>
+    ${hasAnyPassRule ? `
+    <div class="admin-section">
+      <h3>⚠️ นักเรียนที่ต้องสอบแก้ <span class="hint" style="font-weight:400; font-size:.78rem;">(คะแนนไม่ถึงเกณฑ์ผ่าน)</span></h3>
+      ${retakeList.length===0 ? '<div class="empty-state" style="padding:24px;"><span class="big-emoji" style="font-size:2.2rem;">✅</span><p>ผ่านเกณฑ์กันทุกคนแล้ว!</p></div>' :
+        retakeList.map(s=>`
+        <div class="dash-list-item retake-list-item">
+          <div class="retake-info">
+            <b>${escapeHtml(s.name)}</b>
+            <div class="retake-items">${s.items.map(it=>`<span class="retake-chip" title="เกณฑ์ผ่าน ${it.pass}">${escapeHtml(it.title)} · ได้ ${it.score}/${it.pass}</span>`).join("")}</div>
+          </div>
+          <span class="progress-pill pill-retake">สอบแก้ ${s.items.length} งาน</span>
+        </div>`).join("")}
+    </div>` : ""}
     <div class="admin-section">
       <h3>🧑‍🎓 นักเรียนที่ยังค้างงาน (เรียงจากค้างเยอะสุด)</h3>
       ${pendingStudents.length===0 ? '<div class="empty-state" style="padding:24px;"><span class="big-emoji" style="font-size:2.2rem;">🎉</span><p>ส่งงานครบทุกคนแล้ว!</p></div>' :
