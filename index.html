@@ -593,8 +593,13 @@
   table.score-table th{background:var(--surface); font-size:.8rem; position:sticky; top:0; z-index:3;}
   table.score-table th:first-child{z-index:4;}
   .score-max-hint{font-weight:400; font-size:.7rem; color:var(--muted);}
+  .score-pass-hint{font-weight:600; font-size:.7rem; color:#B8860B;}
+  [data-theme="dark"] .score-pass-hint{color:#E5C158;}
   table.score-table input{width:64px; padding:6px; border-radius:8px; border:1.5px solid var(--border); text-align:center; font-family:'Kanit',sans-serif; background:var(--surface); color:var(--text);}
   table.score-table input:not(:placeholder-shown){background:#EAFBEE; border-color:var(--green); color:#1B4D2E;}
+  /* 🎯 ไม่ผ่านเกณฑ์ (เช่น คะแนนสอบกลางภาคไม่ถึงเกณฑ์) — ขึ้นสีแดงเตือนชัดเจน แรงกว่าสีเขียวปกติ */
+  table.score-table input.below-pass{background:#FDECEC !important; border-color:#E5484D !important; color:#7A1F23 !important; font-weight:700;}
+  table.score-table input.below-pass:focus{outline:2px solid #E5484D;}
   /* ซ่อนลูกศรเพิ่ม-ลดของ input number เฉพาะช่องกรอกคะแนน — ให้พิมพ์เลขได้เลย */
   table.score-table input::-webkit-outer-spin-button,
   table.score-table input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
@@ -1210,6 +1215,10 @@
       </div>
     </div>
     <div class="field">
+      <label>🎯 เกณฑ์คะแนนผ่าน (ไม่บังคับ)</label>
+      <input type="number" id="editAssignmentPassScore" placeholder="เว้นว่างได้ถ้าไม่ต้องการเกณฑ์ผ่าน" min="0" step="0.5">
+    </div>
+    <div class="field">
       <label>วันที่มอบงาน (ไม่บังคับ)</label>
       <input type="date" id="editAssignmentDate">
     </div>
@@ -1321,6 +1330,10 @@
             <label>คะแนนเต็ม</label>
             <input type="number" id="newAssignmentMaxScore" value="10" min="0" step="0.5">
           </div>
+        </div>
+        <div class="field">
+          <label>🎯 เกณฑ์คะแนนผ่าน (ไม่บังคับ — ตั้งไว้เพื่อขึ้นสีแดงเตือนถ้าไม่ผ่าน เช่น คะแนนสอบกลางภาค)</label>
+          <input type="number" id="newAssignmentPassScore" placeholder="เว้นว่างได้ถ้าไม่ต้องการเกณฑ์ผ่าน" min="0" step="0.5">
         </div>
         <div class="field">
           <label>วันที่มอบงาน (ไม่บังคับ)</label>
@@ -3770,7 +3783,7 @@ async function loadAdminRoomData(){
   const typeDl = document.getElementById("assignmentTypeOptions");
   if(typeDl){
     const types = [...new Set(state.assignments.map(a=>a.work_type).filter(Boolean))];
-    const defaults = ["งานเดี่ยว","งานกลุ่ม","โปรเจกต์","ควิซ","ใบงาน"];
+    const defaults = ["งานเดี่ยว","งานกลุ่ม","โปรเจกต์","ควิซ","ใบงาน","สอบกลางภาค","สอบปลายภาค"];
     const all = [...new Set([...types, ...defaults])];
     typeDl.innerHTML = all.map(t=>`<option value="${escapeHtml(t)}"></option>`).join("");
   }
@@ -3854,7 +3867,7 @@ function renderAdminAssignmentList(){
         <span class="drag-handle" title="ลากเพื่อจัดลำดับ">⠿</span>
         <div>
           <b>${escapeHtml(a.title)}</b>
-          <span>🏷️ ${escapeHtml(a.work_type || "งานเดี่ยว")} · เต็ม ${a.max_score ?? 10} คะแนน${a.assigned_date ? ` · 📅 ${formatThaiDate(a.assigned_date)}` : ""}</span>
+          <span>🏷️ ${escapeHtml(a.work_type || "งานเดี่ยว")} · เต็ม ${a.max_score ?? 10} คะแนน${(a.pass_score!==null && a.pass_score!==undefined) ? ` · <span class="score-pass-hint">🎯 ผ่าน ${a.pass_score}</span>` : ""}${a.assigned_date ? ` · 📅 ${formatThaiDate(a.assigned_date)}` : ""}</span>
         </div>
       </div>
       <div class="row-actions">
@@ -3912,14 +3925,18 @@ async function addAssignment(){
   const title = input.value.trim();
   const work_type = document.getElementById("newAssignmentType").value.trim() || "งานเดี่ยว";
   const max_score = parseFloat(document.getElementById("newAssignmentMaxScore").value) || 0;
+  const passRaw = document.getElementById("newAssignmentPassScore").value.trim();
+  const pass_score = passRaw === "" ? null : parseFloat(passRaw);
   const assigned_date = document.getElementById("newAssignmentDate").value || null;
   if(!title){ showToast("กรอกชื่องานก่อนนะ"); return; }
+  if(pass_score !== null && pass_score > max_score){ showToast("เกณฑ์คะแนนผ่าน ต้องไม่เกินคะแนนเต็ม"); return; }
   const { error } = await supabaseClient.from("assignments").insert({
-    classroom_id: state.adminRoom.id, title, work_type, max_score, assigned_date, order_index: state.assignments.length
+    classroom_id: state.adminRoom.id, title, work_type, max_score, pass_score, assigned_date, order_index: state.assignments.length
   });
-  if(error){ showErr("เพิ่มไม่สำเร็จ", error); return; }
+  if(error){ showErr("เพิ่มไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 18)", error); return; }
   input.value = "";
   document.getElementById("newAssignmentMaxScore").value = "10";
+  document.getElementById("newAssignmentPassScore").value = "";
   document.getElementById("newAssignmentDate").value = "";
   showToast("เพิ่มงานแล้ว ✅");
   await loadAdminRoomData();
@@ -3946,6 +3963,7 @@ function renameAssignment(id){
   document.getElementById("editAssignmentTitle").value = a.title || "";
   document.getElementById("editAssignmentType").value = a.work_type || "งานเดี่ยว";
   document.getElementById("editAssignmentMaxScore").value = a.max_score ?? 10;
+  document.getElementById("editAssignmentPassScore").value = (a.pass_score ?? "") === "" ? "" : a.pass_score;
   document.getElementById("editAssignmentDate").value = a.assigned_date || "";
   openModal("modalEditAssignment");
 }
@@ -3954,10 +3972,13 @@ async function saveEditAssignment(){
   const title = document.getElementById("editAssignmentTitle").value.trim();
   const work_type = document.getElementById("editAssignmentType").value.trim() || "งานเดี่ยว";
   const max_score = parseFloat(document.getElementById("editAssignmentMaxScore").value) || 0;
+  const passRaw = document.getElementById("editAssignmentPassScore").value.trim();
+  const pass_score = passRaw === "" ? null : parseFloat(passRaw);
   const assigned_date = document.getElementById("editAssignmentDate").value || null;
   if(!title){ showToast("กรอกชื่องานก่อนนะ"); return; }
-  const { error } = await supabaseClient.from("assignments").update({ title, work_type, max_score, assigned_date }).eq("id", id);
-  if(error){ showErr("แก้ไขไม่สำเร็จ", error); return; }
+  if(pass_score !== null && pass_score > max_score){ showToast("เกณฑ์คะแนนผ่าน ต้องไม่เกินคะแนนเต็ม"); return; }
+  const { error } = await supabaseClient.from("assignments").update({ title, work_type, max_score, pass_score, assigned_date }).eq("id", id);
+  if(error){ showErr("แก้ไขไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 18)", error); return; }
   closeModal("modalEditAssignment");
   showToast("แก้ไขงานแล้ว ✅");
   await loadAdminRoomData();
@@ -3992,7 +4013,8 @@ function renderScoreGrid(){
   // หน้ากรอกคะแนน: เรียงงานสลับทางกับหน้ารายการงาน (งานล่างสุด = คอลัมน์แรกซ้ายสุด = ชิ้นที่ 1)
   const scoreAssignments = [...state.assignments].reverse();
   scoreAssignments.forEach(a=>{
-    html += `<th>${escapeHtml(a.title)}<br><span class="score-max-hint">เต็ม ${a.max_score ?? 10}</span></th>`;
+    const passHint = (a.pass_score!==null && a.pass_score!==undefined) ? ` · <span class="score-pass-hint">ผ่าน ${a.pass_score}</span>` : "";
+    html += `<th>${escapeHtml(a.title)}<br><span class="score-max-hint">เต็ม ${a.max_score ?? 10}</span>${passHint}</th>`;
   });
   html += `</tr></thead><tbody>`;
   state.students.forEach(st=>{
@@ -4000,7 +4022,12 @@ function renderScoreGrid(){
     scoreAssignments.forEach(a=>{
       const sub = findSubmission(st.id, a.id);
       const val = (sub && sub.score!==null && sub.score!==undefined) ? sub.score : "";
-      html += `<td><input type="number" inputmode="decimal" placeholder="-" value="${val}" max="${a.max_score ?? 10}" min="0" onchange="saveScore('${st.id}','${a.id}', this, ${a.max_score ?? 10})" onkeydown="handleScoreKey(event, this)"></td>`;
+      const passScore = a.pass_score;
+      const hasPassRule = passScore!==null && passScore!==undefined;
+      const belowPass = hasPassRule && val!=="" && parseFloat(val) < passScore;
+      const belowClass = belowPass ? " below-pass" : "";
+      const titleAttr = hasPassRule ? ` title="เกณฑ์ผ่าน ${passScore} คะแนน${belowPass ? ' — ยังไม่ผ่าน ต้องเตรียมสอบแก้ ⚠️' : ''}"` : "";
+      html += `<td><input type="number" inputmode="decimal" placeholder="-" value="${val}" max="${a.max_score ?? 10}" min="0" class="${belowClass.trim()}" data-pass="${hasPassRule ? passScore : ''}" onchange="saveScore('${st.id}','${a.id}', this, ${a.max_score ?? 10})" onkeydown="handleScoreKey(event, this)" oninput="updateScoreCellState(this)"${titleAttr}></td>`;
     });
     html += `</tr>`;
   });
@@ -4032,6 +4059,16 @@ async function saveScore(studentId, assignmentId, input, maxScore){
   showToast(score===null ? "ล้างคะแนนแล้ว" : "บันทึกคะแนนแล้ว ✅");
 }
 // นำทางในตารางคะแนนด้วยแป้นลูกศร — ไม่ต้องใช้เมาส์คลิก | Enter = บันทึกแล้วอยู่ที่เดิม ไม่จำเป็นต้องกด
+// อัปเดตสถานะสี (แดง=ไม่ผ่านเกณฑ์) แบบเรียลไทม์ทันทีที่พิมพ์ ไม่ต้องรอบันทึก
+function updateScoreCellState(input){
+  const passRaw = input.dataset.pass;
+  if(passRaw === "" || passRaw === undefined) return; // ไม่มีเกณฑ์ผ่าน ไม่ต้องเช็ค
+  const passScore = parseFloat(passRaw);
+  const val = input.value.trim();
+  const belowPass = val!=="" && parseFloat(val) < passScore;
+  input.classList.toggle("below-pass", belowPass);
+  input.title = belowPass ? `เกณฑ์ผ่าน ${passScore} คะแนน — ยังไม่ผ่าน ต้องเตรียมสอบแก้ ⚠️` : (val!=="" ? `เกณฑ์ผ่าน ${passScore} คะแนน — ผ่านแล้ว ✅` : `เกณฑ์ผ่าน ${passScore} คะแนน`);
+}
 function handleScoreKey(e, input){
   const key = e.key;
   if(key==="Enter"){
