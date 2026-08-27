@@ -268,6 +268,18 @@
   .card-thumb-doc{position:relative; background:#fff; border:1px solid var(--border);}
   .card-thumb-doc img{object-fit:contain !important; background:#fff;}
   .doc-kind-badge{position:absolute; left:7px; bottom:7px; background:rgba(20,24,38,.82); color:#fff; font-size:.65rem; font-weight:600; padding:3px 9px; border-radius:999px; backdrop-filter:blur(3px);}
+  /* 🎨 พรีวิวแบบฝัง (Canva) บนการ์ด */
+  .card-thumb-embed{position:relative; background:#fff; border:1px solid var(--border);}
+  .card-thumb-embed iframe{width:100%; height:100%; border:0; display:block; pointer-events:none;}
+  .embed-click-shield{position:absolute; inset:0; z-index:2;} /* กันคลิกทะลุเข้า iframe ให้กดแล้วเปิดดูเต็มแทน */
+  /* การ์ดแจ้งเตือนลิงก์ที่ดูพรีวิวไม่ได้ */
+  .card-thumb-note{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; text-align:center; padding:12px; background:var(--surface); border:1px dashed var(--border);}
+  .card-thumb-note .note-icon{font-size:1.8rem;}
+  .card-thumb-note b{font-size:.82rem; color:var(--text);}
+  .card-thumb-note small{font-size:.68rem; color:var(--muted); line-height:1.35;}
+  /* พรีวิวแบบฝังใน Lightbox */
+  .lightbox-embed-wrap{background:#fff;}
+  .lightbox-embed-wrap iframe{width:100%; height:100%; min-height:60vh; border:0; display:block;}
   /* พรีวิวขนาดใหญ่ใน Lightbox */
   .lightbox-doc{position:relative; display:flex; align-items:center; justify-content:center; width:100%; height:100%; background:#1a1a1a;}
   .lightbox-doc .lightbox-img{background:#fff;}
@@ -1774,6 +1786,28 @@ function googlePreviewUrl(url, width){
   return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${width||800}` : null;
 }
 // ชนิดของไฟล์ Google เพื่อโชว์ป้ายบอกบนพรีวิว
+/* ---- 🎨 พรีวิวลิงก์ Canva ----
+   Canva ไม่มี URL รูปพรีวิวสาธารณะแบบ Google จึงใช้วิธี "ฝังหน้าแรก" (embed) แทน
+   ⚠️ ลิงก์ย่อ canva.link ไม่มีรหัสงานในตัวลิงก์ → ดึงพรีวิวไม่ได้ ต้องใช้ลิงก์เต็ม */
+function extractCanvaDesignId(url){
+  if(!url) return null;
+  try{
+    const host = new URL(url).hostname;
+    if(!/canva\.com$/.test(host)) return null;
+  }catch(e){ return null; }
+  const m = url.match(/\/design\/([A-Za-z0-9_-]{8,})/);
+  return m ? m[1] : null;
+}
+// URL สำหรับฝังพรีวิวหน้าแรกของงาน Canva
+function canvaEmbedUrl(url){
+  const id = extractCanvaDesignId(url);
+  return id ? `https://www.canva.com/design/${id}/view?embed` : null;
+}
+// เช็คว่าเป็นลิงก์ย่อ Canva ที่ดึงพรีวิวไม่ได้ (ไว้แจ้งเตือนให้ใช้ลิงก์เต็ม)
+function isCanvaShortLink(url){
+  if(!url) return false;
+  try{ return /^canva\.link$/.test(new URL(url).hostname.replace("www.","")); }catch(e){ return false; }
+}
 function googleDocKind(url){
   if(!url) return null;
   if(url.includes("/presentation/")) return { icon:"📊", label:"Google Slides" };
@@ -2485,17 +2519,33 @@ function postCardHtml(p, sectionTag){
   }
 
   // Thumbnail (เฉพาะรูป) — อัตราส่วนคงที่ 16:9 ไม่ยืดเบี้ยว (ถ้ารูปเสียให้ซ่อน กันช่องว่างเปล่า)
-  // พรีวิว: ถ้ามีรูปแนบใช้รูปนั้น / ถ้าไม่มีแต่เป็นลิงก์ Google ให้ดึงภาพหน้าแรกมาโชว์
+  // พรีวิว: รูปแนบ > ลิงก์ Google (รูปหน้าแรก) > ลิงก์ Canva (ฝังหน้าแรก)
   const gPreview = !p.image_url ? googlePreviewUrl(p.link_url, 800) : null;
   const gKind = gPreview ? googleDocKind(p.link_url) : null;
-  const thumb = p.image_url
-    ? `<div class="card-thumb" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม"><img src="${p.image_url}" loading="lazy" alt="ผลงานของ ${escapeHtml(p.student_name)}" onerror="this.parentElement.style.display='none'"></div>`
-    : (gPreview
-      ? `<div class="card-thumb card-thumb-doc" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม">
+  const cvEmbed = (!p.image_url && !gPreview) ? canvaEmbedUrl(p.link_url) : null;
+  const cvShort = (!p.image_url && !gPreview && !cvEmbed) ? isCanvaShortLink(p.link_url) : false;
+  let thumb = "";
+  if(p.image_url){
+    thumb = `<div class="card-thumb" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม"><img src="${p.image_url}" loading="lazy" alt="ผลงานของ ${escapeHtml(p.student_name)}" onerror="this.parentElement.style.display='none'"></div>`;
+  } else if(gPreview){
+    thumb = `<div class="card-thumb card-thumb-doc" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม">
            <img src="${gPreview}" loading="lazy" alt="พรีวิวผลงานของ ${escapeHtml(p.student_name)}" onerror="this.parentElement.style.display='none'">
            ${gKind ? `<span class="doc-kind-badge">${gKind.icon} ${gKind.label}</span>` : ""}
-         </div>`
-      : "");
+         </div>`;
+  } else if(cvEmbed){
+    // Canva: ฝังหน้าแรก แล้วครอบด้วยชั้นโปร่งใสให้คลิกเปิดดูเต็มได้ (ไม่ให้คลิกทะลุเข้า iframe)
+    thumb = `<div class="card-thumb card-thumb-embed" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม">
+           <iframe src="${cvEmbed}" loading="lazy" title="พรีวิวผลงาน Canva" allowfullscreen></iframe>
+           <span class="embed-click-shield"></span>
+           <span class="doc-kind-badge">🎨 Canva</span>
+         </div>`;
+  } else if(cvShort){
+    thumb = `<div class="card-thumb card-thumb-note" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม">
+           <span class="note-icon">🎨</span>
+           <b>ลิงก์ย่อ Canva</b>
+           <small>ดูพรีวิวไม่ได้ — ให้ใช้ลิงก์เต็มจาก canva.com</small>
+         </div>`;
+  }
 
   return `
   <div class="post-card${p.pinned ? ' pinned-card' : ''}${state.isAdmin && state.sections.length>0 && !p.pinned ? ' draggable-card' : ''}"
@@ -2590,17 +2640,33 @@ function renderViewPost(){
     media = `<img src="${p.image_url}" alt="ผลงาน" class="lightbox-img">`;
   } else if(p.link_url){
     const gPrev = googlePreviewUrl(p.link_url, 1600);
+    const cvEmb = canvaEmbedUrl(p.link_url);
+    const cvSh = isCanvaShortLink(p.link_url);
     const gk = googleDocKind(p.link_url);
-    media = gPrev
-      ? `<div class="lightbox-doc">
+    if(gPrev){
+      media = `<div class="lightbox-doc">
            <img src="${gPrev}" alt="พรีวิวผลงาน" class="lightbox-img" onerror="this.closest('.lightbox-doc').querySelector('.lightbox-doc-fallback').style.display='flex'; this.style.display='none';">
            <div class="lightbox-doc-fallback lightbox-placeholder" style="display:none;">
              <span>${gk ? gk.icon : "🔗"}</span>
              <p>ดูพรีวิวไม่ได้ — ไฟล์อาจตั้งค่าแชร์เป็นส่วนตัว</p>
            </div>
            <a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary lightbox-doc-open">${gk ? gk.icon+" เปิด "+gk.label : "🔗 เปิดลิงก์ผลงาน"}</a>
-         </div>`
-      : `<div class="lightbox-placeholder"><span>🔗</span><a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary">เปิดลิงก์ผลงาน</a></div>`;
+         </div>`;
+    } else if(cvEmb){
+      // Canva: ฝังงานเต็มหน้า เลื่อนดูทุกหน้าได้เลยในนี้
+      media = `<div class="lightbox-doc lightbox-embed-wrap">
+           <iframe src="${cvEmb}" title="ผลงาน Canva" allowfullscreen></iframe>
+           <a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary lightbox-doc-open">🎨 เปิดใน Canva</a>
+         </div>`;
+    } else if(cvSh){
+      media = `<div class="lightbox-placeholder">
+           <span>🎨</span>
+           <p>ลิงก์ย่อ Canva แสดงพรีวิวไม่ได้<br><small style="opacity:.75;">ให้นักเรียนคัดลอกลิงก์เต็มจาก canva.com แทน</small></p>
+           <a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary">เปิดลิงก์ผลงาน</a>
+         </div>`;
+    } else {
+      media = `<div class="lightbox-placeholder"><span>🔗</span><a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary">เปิดลิงก์ผลงาน</a></div>`;
+    }
   } else if(p.file_url){
     media = `<div class="lightbox-placeholder"><span>${fileIconFor(p.file_name||"")}</span><a href="${p.file_url}" target="_blank" rel="noopener" class="btn btn-primary">เปิด/ดาวน์โหลดไฟล์</a></div>`;
   } else {
