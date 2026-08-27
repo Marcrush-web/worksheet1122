@@ -264,6 +264,15 @@
   .card-source-text span{font-size:.7rem; color:var(--muted);}
   /* Thumbnail อัตราส่วนคงที่ 16:9 */
   .card-thumb{width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; margin:4px 0 10px; background:var(--surface); cursor:pointer;}
+  /* 🖼️ พรีวิวลิงก์ Google Slides/Docs บนการ์ด */
+  .card-thumb-doc{position:relative; background:#fff; border:1px solid var(--border);}
+  .card-thumb-doc img{object-fit:contain !important; background:#fff;}
+  .doc-kind-badge{position:absolute; left:7px; bottom:7px; background:rgba(20,24,38,.82); color:#fff; font-size:.65rem; font-weight:600; padding:3px 9px; border-radius:999px; backdrop-filter:blur(3px);}
+  /* พรีวิวขนาดใหญ่ใน Lightbox */
+  .lightbox-doc{position:relative; display:flex; align-items:center; justify-content:center; width:100%; height:100%; background:#1a1a1a;}
+  .lightbox-doc .lightbox-img{background:#fff;}
+  .lightbox-doc-open{position:absolute; bottom:16px; left:50%; transform:translateX(-50%); box-shadow:0 6px 20px rgba(0,0,0,.45); white-space:nowrap;}
+  .lightbox-doc-fallback{position:absolute; inset:0;}
   /* ---------- 🖼️ Lightbox ดูผลงานเต็ม (Padlet-style) ---------- */
   .lightbox-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:200; align-items:center; justify-content:center; padding:20px;}
   .lightbox-overlay.active{display:flex; animation:fadeIn .2s;}
@@ -1746,6 +1755,34 @@ function escapeHtml(s){
 function extractDomain(url){
   try{ return new URL(url).hostname.replace("www.",""); }catch(e){ return url; }
 }
+/* ---- 🖼️ พรีวิวลิงก์ Google (Slides/Docs/Sheets/Drive/PDF) ----
+   ดึง File ID จากลิงก์ แล้วใช้ endpoint thumbnail ของ Google Drive
+   ⚠️ ไฟล์ต้องแชร์เป็น "ทุกคนที่มีลิงก์" ถึงจะขึ้นพรีวิว ถ้าไม่ขึ้นจะ fallback เป็นแถบลิงก์เดิม */
+function extractGoogleFileId(url){
+  if(!url) return null;
+  try{
+    const host = new URL(url).hostname;
+    if(!/(docs|drive)\.google\.com$/.test(host)) return null;
+  }catch(e){ return null; }
+  // รูปแบบ /d/<ID>/ (Docs, Slides, Sheets, Drive file) หรือ ?id=<ID> (Drive แบบเก่า)
+  let m = url.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || url.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+  return m ? m[1] : null;
+}
+// คืน URL รูปพรีวิว (หน้าแรกของสไลด์/เอกสาร) หรือ null ถ้าไม่ใช่ลิงก์ Google
+function googlePreviewUrl(url, width){
+  const id = extractGoogleFileId(url);
+  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${width||800}` : null;
+}
+// ชนิดของไฟล์ Google เพื่อโชว์ป้ายบอกบนพรีวิว
+function googleDocKind(url){
+  if(!url) return null;
+  if(url.includes("/presentation/")) return { icon:"📊", label:"Google Slides" };
+  if(url.includes("/document/"))     return { icon:"📄", label:"Google Docs" };
+  if(url.includes("/spreadsheets/")) return { icon:"📈", label:"Google Sheets" };
+  if(url.includes("/forms/"))        return { icon:"📋", label:"Google Forms" };
+  if(extractGoogleFileId(url))       return { icon:"📁", label:"Google Drive" };
+  return null;
+}
 function fireConfetti(){
   if(typeof confetti !== "function") return;
   const theme = state.currentClassroom ? themeFor(state.currentClassroom.id) : {a:"#FF5D8F", b:"#FFD93D"};
@@ -2448,9 +2485,17 @@ function postCardHtml(p, sectionTag){
   }
 
   // Thumbnail (เฉพาะรูป) — อัตราส่วนคงที่ 16:9 ไม่ยืดเบี้ยว (ถ้ารูปเสียให้ซ่อน กันช่องว่างเปล่า)
+  // พรีวิว: ถ้ามีรูปแนบใช้รูปนั้น / ถ้าไม่มีแต่เป็นลิงก์ Google ให้ดึงภาพหน้าแรกมาโชว์
+  const gPreview = !p.image_url ? googlePreviewUrl(p.link_url, 800) : null;
+  const gKind = gPreview ? googleDocKind(p.link_url) : null;
   const thumb = p.image_url
     ? `<div class="card-thumb" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม"><img src="${p.image_url}" loading="lazy" alt="ผลงานของ ${escapeHtml(p.student_name)}" onerror="this.parentElement.style.display='none'"></div>`
-    : "";
+    : (gPreview
+      ? `<div class="card-thumb card-thumb-doc" onclick="openViewPost('${p.id}')" title="กดเพื่อดูเต็ม">
+           <img src="${gPreview}" loading="lazy" alt="พรีวิวผลงานของ ${escapeHtml(p.student_name)}" onerror="this.parentElement.style.display='none'">
+           ${gKind ? `<span class="doc-kind-badge">${gKind.icon} ${gKind.label}</span>` : ""}
+         </div>`
+      : "");
 
   return `
   <div class="post-card${p.pinned ? ' pinned-card' : ''}${state.isAdmin && state.sections.length>0 && !p.pinned ? ' draggable-card' : ''}"
@@ -2544,7 +2589,18 @@ function renderViewPost(){
   if(p.image_url){
     media = `<img src="${p.image_url}" alt="ผลงาน" class="lightbox-img">`;
   } else if(p.link_url){
-    media = `<div class="lightbox-placeholder"><span>🔗</span><a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary">เปิดลิงก์ผลงาน</a></div>`;
+    const gPrev = googlePreviewUrl(p.link_url, 1600);
+    const gk = googleDocKind(p.link_url);
+    media = gPrev
+      ? `<div class="lightbox-doc">
+           <img src="${gPrev}" alt="พรีวิวผลงาน" class="lightbox-img" onerror="this.closest('.lightbox-doc').querySelector('.lightbox-doc-fallback').style.display='flex'; this.style.display='none';">
+           <div class="lightbox-doc-fallback lightbox-placeholder" style="display:none;">
+             <span>${gk ? gk.icon : "🔗"}</span>
+             <p>ดูพรีวิวไม่ได้ — ไฟล์อาจตั้งค่าแชร์เป็นส่วนตัว</p>
+           </div>
+           <a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary lightbox-doc-open">${gk ? gk.icon+" เปิด "+gk.label : "🔗 เปิดลิงก์ผลงาน"}</a>
+         </div>`
+      : `<div class="lightbox-placeholder"><span>🔗</span><a href="${p.link_url}" target="_blank" rel="noopener" class="btn btn-primary">เปิดลิงก์ผลงาน</a></div>`;
   } else if(p.file_url){
     media = `<div class="lightbox-placeholder"><span>${fileIconFor(p.file_name||"")}</span><a href="${p.file_url}" target="_blank" rel="noopener" class="btn btn-primary">เปิด/ดาวน์โหลดไฟล์</a></div>`;
   } else {
