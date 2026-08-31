@@ -149,6 +149,8 @@
   .board-column-count b{color:var(--accent); font-weight:700;}
   .col-tag{display:inline-block; background:rgba(46,107,230,.12); color:var(--accent); padding:1px 8px; border-radius:999px; font-size:.68rem; font-weight:600;}
   [data-theme="dark"] .col-tag{background:rgba(77,150,255,.2);}
+  .col-linked-badge{display:block; margin-top:4px; font-size:.7rem; font-weight:600; color:#12A150; background:rgba(18,161,80,.1); padding:2px 9px; border-radius:999px; width:fit-content;}
+  [data-theme="dark"] .col-linked-badge{color:#4ADE80; background:rgba(74,222,128,.14);}
   /* ลากสลับตำแหน่งคอลัมน์ (Phase B) */
   .col-draggable .board-column-sticky{cursor:grab;}
   .col-draggable .board-column-sticky:active{cursor:grabbing;}
@@ -1234,6 +1236,12 @@
         <option value="โครงงาน"></option>
       </datalist>
     </div>
+    <div class="field">
+      <label>🔗 ผูกกับรายการงาน (ไม่บังคับ — ผูกแล้วครูจะให้คะแนน+ตรวจงานจากบอร์ดได้เลย คะแนนไปโผล่ใน Dashboard/เช็คงานด้วย)</label>
+      <select id="sectionAssignmentSelect">
+        <option value="">— ไม่ผูก (ตรวจได้อย่างเดียว ให้คะแนนไม่ได้) —</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modalSection')">ยกเลิก</button>
       <button class="btn btn-primary" id="sectionSaveBtn" onclick="saveSection()">เพิ่มคอลัมน์</button>
@@ -1541,6 +1549,7 @@ let state = {
   boardView: localStorage.getItem("boardView") || "vertical",
   patternColorIdx: 0,
   roomStudents: [],
+  roomAssignments: [],
   viewingPostId: null
 };
 
@@ -1955,6 +1964,8 @@ async function openClassroom(id){
   renderFilterBar();
   // โหลดรายชื่อนักเรียนของห้องนี้ไว้ (ใช้ใน dropdown เลือกเลขที่ตอนโพสต์ + เรียงตามเลขที่)
   loadRoomStudents();
+  // โหลดรายการงานของห้องนี้ไว้ (ใช้ผูกคอลัมน์กับรายการงาน + ให้คะแนนตอนตรวจงานจากบอร์ด)
+  loadRoomAssignments();
   await loadPosts();
 }
 // โหลดรายชื่อนักเรียนของห้องปัจจุบัน เรียงตามลำดับ (= เลขที่)
@@ -1963,6 +1974,12 @@ async function loadRoomStudents(){
     .eq("classroom_id", state.currentClassroom.id).order("order_index",{ascending:true});
   // เก็บพร้อมเลขที่ (ลำดับในรายชื่อ +1 = เลขที่)
   state.roomStudents = (data||[]).map((s,i)=>({ ...s, no: i+1 }));
+}
+// โหลดรายการงานของห้องปัจจุบัน (ระบบเช็คงาน) ไว้ให้เลือกตอนผูกคอลัมน์
+async function loadRoomAssignments(){
+  const { data } = await supabaseClient.from("assignments").select("*")
+    .eq("classroom_id", state.currentClassroom.id).order("order_index",{ascending:true});
+  state.roomAssignments = data || [];
 }
 function switchClassroomTab(tab){
   state.classroomTab = tab;
@@ -2079,7 +2096,7 @@ function renderShelfView(){
 
   const columnsHtml = state.sections.map(sec=>{
     const cards = list.filter(p=>p.section_id===sec.id);
-    return columnHtml(sec.title, cards, sec.id, true, sec.tag);
+    return columnHtml(sec.title, cards, sec.id, true, sec.tag, sec.assignment_id);
   }).join("");
 
   // ปุ่มเพิ่มคอลัมน์ท้ายสุด (เฉพาะครู) — ระบบเป็น Padlet ล้วน ไม่มีกอง "ไม่มีหมวด" แล้ว
@@ -2103,9 +2120,10 @@ async function loadAllVisibleComments(){
   Object.keys(byPost).forEach(pid=>renderCardComments(pid, byPost[pid]));
 }
 // สร้าง HTML ของ 1 คอลัมน์ (ใช้ร่วมกันทั้งคอลัมน์ปกติและ "ไม่มีหมวด")
-function columnHtml(title, cards, sectionId, canManage, sectionTag){
+function columnHtml(title, cards, sectionId, canManage, sectionTag, assignmentId){
   const addTarget = sectionId ? `'${sectionId}'` : "";
   const canDragCol = state.isAdmin && sectionId;
+  const linkedAssignment = assignmentId ? (state.roomAssignments||[]).find(a=>a.id===assignmentId) : null;
   return `
     <div class="board-column${canDragCol ? ' col-draggable' : ''}" ${canDragCol ? `data-col-id="${sectionId}"` : ''}
          ondragover="onColumnReorderOver(event,'${sectionId||''}')" ondragleave="onColumnReorderLeave(event)" ondrop="onColumnReorderDrop(event,'${sectionId||''}')">
@@ -2115,6 +2133,7 @@ function columnHtml(title, cards, sectionId, canManage, sectionTag){
           <div class="col-title-wrap">
             <h4>${canDragCol ? '<span class="col-drag-handle" title="ลากเพื่อสลับตำแหน่งคอลัมน์">⠿</span> ' : ''}${escapeHtml(title)}</h4>
             <span class="board-column-count"><b>${cards.length}</b> ผลงาน${sectionTag ? ` · <span class="col-tag">${escapeHtml(sectionTag)}</span>` : ""}</span>
+            ${linkedAssignment ? `<span class="col-linked-badge" title="ตรวจงาน+ให้คะแนนจากบอร์ดนี้ได้ · คะแนนไปโผล่ใน Dashboard/เช็คงาน">🔗 ${escapeHtml(linkedAssignment.title)} (เต็ม ${linkedAssignment.max_score ?? 10})</span>` : ""}
           </div>
           ${canManage && state.isAdmin ? `
             <div class="section-menu-wrap">
@@ -2306,24 +2325,34 @@ function addSection(){
   document.getElementById("sectionSaveBtn").textContent = "เพิ่มคอลัมน์";
   document.getElementById("sectionTitleInput").value = "";
   document.getElementById("sectionTagInput").value = "";
+  fillSectionAssignmentDropdown("");
   openModal("modalSection");
   setTimeout(()=>document.getElementById("sectionTitleInput").focus(), 100);
+}
+// เติมตัวเลือกรายการงานลง dropdown ผูกคอลัมน์ (เรียงตามลำดับ) + เลือกค่าปัจจุบัน
+function fillSectionAssignmentDropdown(currentId){
+  const sel = document.getElementById("sectionAssignmentSelect");
+  const list = state.roomAssignments || [];
+  let opts = '<option value="">— ไม่ผูก (ตรวจได้อย่างเดียว ให้คะแนนไม่ได้) —</option>';
+  opts += list.map(a=>`<option value="${a.id}" ${a.id===currentId?"selected":""}>${escapeHtml(a.title)} (เต็ม ${a.max_score ?? 10})</option>`).join("");
+  sel.innerHTML = opts;
 }
 // บันทึก — ใช้ปุ่มเดียวทั้งเพิ่มและแก้ไข (ดูจาก editSectionId)
 async function saveSection(){
   const id = document.getElementById("editSectionId").value;
   const title = document.getElementById("sectionTitleInput").value.trim();
   const tag = document.getElementById("sectionTagInput").value.trim() || null;
+  const assignmentId = document.getElementById("sectionAssignmentSelect").value || null;
   if(!title){ showToast("กรอกชื่อคอลัมน์ก่อนนะ"); return; }
   if(id){
-    const { error } = await supabaseClient.from("board_sections").update({ title, tag }).eq("id", id);
-    if(error){ showErr("แก้ไขไม่สำเร็จ", error); return; }
+    const { error } = await supabaseClient.from("board_sections").update({ title, tag, assignment_id: assignmentId }).eq("id", id);
+    if(error){ showErr("แก้ไขไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 19)", error); return; }
     showToast("แก้ไขคอลัมน์แล้ว ✅");
   } else {
     const { error } = await supabaseClient.from("board_sections").insert({
-      classroom_id: state.currentClassroom.id, title, tag, order_index: state.sections.length
+      classroom_id: state.currentClassroom.id, title, tag, assignment_id: assignmentId, order_index: state.sections.length
     });
-    if(error){ showErr("เพิ่มคอลัมน์ไม่สำเร็จ", error); return; }
+    if(error){ showErr("เพิ่มคอลัมน์ไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 19)", error); return; }
     showToast("เพิ่มคอลัมน์แล้ว ✅");
     state.scrollToNewColumn = true; // ให้เลื่อนไปคอลัมน์ใหม่หลัง render
   }
@@ -2350,7 +2379,7 @@ function closeAllSectionMenus(){
   document.querySelectorAll(".section-menu.open").forEach(m=>m.classList.remove("open"));
 }
 document.addEventListener("click", closeAllSectionMenus);
-// กดแก้ไขคอลัมน์ -> เปิด Modal พร้อมชื่อ+แท็กเดิม
+// กดแก้ไขคอลัมน์ -> เปิด Modal พร้อมชื่อ+แท็ก+รายการงานที่ผูกไว้เดิม
 function renamePrompt(sectionId){
   closeAllSectionMenus();
   const sec = state.sections.find(s=>s.id===sectionId);
@@ -2360,6 +2389,7 @@ function renamePrompt(sectionId){
   document.getElementById("sectionSaveBtn").textContent = "บันทึก";
   document.getElementById("sectionTitleInput").value = sec.title;
   document.getElementById("sectionTagInput").value = sec.tag || "";
+  fillSectionAssignmentDropdown(sec.assignment_id || "");
   openModal("modalSection");
   setTimeout(()=>document.getElementById("sectionTitleInput").focus(), 100);
 }
