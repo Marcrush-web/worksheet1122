@@ -323,6 +323,7 @@
   [data-theme="dark"] .post-card .tagpill{background:rgba(77,150,255,.18);}
   .post-card h4{font-size:1.05rem; font-weight:600; margin-bottom:5px; line-height:1.35;}
   .student-no{display:inline-block; background:var(--brand); color:#3D2400; font-size:.72rem; font-weight:700; padding:1px 8px; border-radius:6px; vertical-align:middle;}
+  .grade-student-fixed{padding:11px 14px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; font-weight:600; font-size:.95rem;}
   .post-card p{font-size:.85rem; color:var(--muted); margin-bottom:10px; line-height:1.5;}
   .post-card .foot{display:flex; justify-content:space-between; align-items:center; font-size:.75rem; color:var(--muted); margin-top:4px;}
   .heart-btn{border:none; background:none; cursor:pointer; font-size:1rem; display:flex; align-items:center; gap:4px; color:#FF5D8F;}
@@ -410,6 +411,21 @@
     background:#12A150; color:#fff; font-size:.7rem; font-weight:600;
     padding:3px 9px; border-radius:999px; box-shadow:0 2px 6px rgba(18,161,80,.35);
   }
+  /* ---------- 🏷️ ป้ายสถานะตรวจงาน (คอลัมน์ที่ผูกกับรายการงาน) ---------- */
+  .status-badge{
+    position:absolute; top:10px; right:46px; z-index:6;
+    font-size:.7rem; font-weight:700; padding:3px 10px; border-radius:999px;
+    white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+  .status-badge.status-pending{background:#FFF3CD; color:#8A6100; border:1px solid #F5D98B;}
+  .status-badge.status-done{background:#12A150; color:#fff;}
+  .status-badge.status-retake{background:#E5484D; color:#fff;}
+  [data-theme="dark"] .status-badge.status-pending{background:rgba(255,193,7,.18); color:#FFD866; border-color:rgba(255,193,7,.4);}
+  .status-badge-inline{display:inline-block; font-size:.78rem; font-weight:700; padding:4px 12px; border-radius:999px; margin-bottom:10px;}
+  .status-badge-inline.status-pending{background:#FFF3CD; color:#8A6100; border:1px solid #F5D98B;}
+  .status-badge-inline.status-done{background:#12A150; color:#fff;}
+  .status-badge-inline.status-retake{background:#E5484D; color:#fff;}
+  [data-theme="dark"] .status-badge-inline.status-pending{background:rgba(255,193,7,.18); color:#FFD866; border-color:rgba(255,193,7,.4);}
   .check-btn{
     border:1.5px solid var(--border); background:var(--surface); cursor:pointer;
     width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -1171,6 +1187,40 @@
 <!-- ============ MODAL: COMMENTS (คอมเมนต์ใต้ผลงาน) ============ -->
 <!-- ============ MODAL: CONFIRM/PROMPT กลาง (แทน confirm/prompt ของเบราว์เซอร์) ============ -->
 <!-- ============ MODAL: VIEW POST (ดูผลงานเต็มแบบ Padlet) ============ -->
+<!-- ============ MODAL: ตรวจงาน + ให้คะแนนจากบอร์ด ============ -->
+<div id="modalGradePost" class="modal-overlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('modalGradePost')">✕</button>
+    <h3>✅ ตรวจงาน + ให้คะแนน</h3>
+    <p class="hint" id="gradeAssignmentHint" style="margin-bottom:14px;"></p>
+    <input type="hidden" id="gradePostId">
+    <input type="hidden" id="gradeAssignmentId">
+    <input type="hidden" id="gradeMaxScore">
+    <input type="hidden" id="gradePassScore">
+
+    <div class="field" id="gradeStudentKnownWrap" style="display:none;">
+      <label>นักเรียน</label>
+      <div class="grade-student-fixed" id="gradeStudentFixedLabel"></div>
+    </div>
+    <div class="field" id="gradeStudentPickWrap" style="display:none;">
+      <label>เลือกนักเรียน (โพสต์นี้ไม่ได้ระบุเลขที่ไว้)</label>
+      <select id="gradeStudentSelect" onchange="onGradeStudentPick()">
+        <option value="">— เลือกนักเรียน —</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label id="gradeScoreLabel">คะแนนที่ได้</label>
+      <input type="number" id="gradeScoreInput" inputmode="decimal" placeholder="กรอกคะแนน" min="0">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="gradeUncheckBtn" onclick="uncheckFromGradeModal()" style="display:none;">ยกเลิกตรวจ</button>
+      <button class="btn btn-primary" onclick="saveGradePost()">บันทึกคะแนน ✓</button>
+    </div>
+  </div>
+</div>
+
 <div id="modalViewPost" class="lightbox-overlay" onclick="if(event.target===this) closeModal2('modalViewPost')">
   <button class="lightbox-close" onclick="closeModal2('modalViewPost')">✕</button>
   <div class="lightbox-body">
@@ -2533,6 +2583,26 @@ function postCardHtml(p, sectionTag){
   // badge บนการ์ดมาจากแท็กของคอลัมน์ (ถ้าคอลัมน์ไม่ได้ตั้งแท็ก ใช้ tag เดิมของโพสต์ที่ค้างอยู่)
   const badgeTag = (sectionTag != null && sectionTag !== "") ? sectionTag : p.tag;
 
+  // ---- ✅ สถานะตรวจงาน (เฉพาะคอลัมน์ที่ผูกกับรายการงานไว้ — Part 19) ----
+  const gradeSec = state.sections.find(s=>s.id===p.section_id);
+  const gradeAssignment = gradeSec && gradeSec.assignment_id ? (state.roomAssignments||[]).find(a=>a.id===gradeSec.assignment_id) : null;
+  let statusBadgeHtml = "";
+  if(gradeAssignment){
+    const maxS = gradeAssignment.max_score ?? 10;
+    const passS = gradeAssignment.pass_score;
+    if(!p.checked){
+      statusBadgeHtml = `<span class="status-badge status-pending" title="ยังไม่ได้ตรวจ">🕐 รอตรวจ</span>`;
+    } else {
+      const belowPass = (passS!==null && passS!==undefined) && p.score!==null && p.score!==undefined && parseFloat(p.score) < passS;
+      statusBadgeHtml = belowPass
+        ? `<span class="status-badge status-retake" title="ได้ ${p.score}/${maxS} · เกณฑ์ผ่าน ${passS} — ต้องสอบแก้">⚠️ ต้องสอบแก้ · ${p.score}/${maxS}</span>`
+        : `<span class="status-badge status-done" title="ครูตรวจแล้ว">✅ ตรวจแล้ว · ${(p.score!==null && p.score!==undefined) ? p.score : "?"}/${maxS}</span>`;
+    }
+  } else if(p.checked){
+    // คอลัมน์ไม่ได้ผูกกับรายการงาน — ใช้ป้ายเดิมแบบง่าย (ตรวจแล้ว เฉยๆ ไม่มีคะแนน)
+    statusBadgeHtml = `<span class="checked-badge" title="ครูตรวจแล้ว">✓ ตรวจแล้ว</span>`;
+  }
+
   // แถบ source ด้านบน (เหมือน Padlet) — โชว์ favicon + โดเมน ถ้าเป็นลิงก์/ไฟล์
   let sourceBar = "";
   if(p.link_url){
@@ -2592,7 +2662,7 @@ function postCardHtml(p, sectionTag){
       </div>
     </div>
     ${p.pinned ? `<span class="pin-badge" title="ปักหมุดโดยครู">📌</span>` : ""}
-    ${p.checked ? `<span class="checked-badge" title="ครูตรวจแล้ว">✓ ตรวจแล้ว</span>` : ""}
+    ${statusBadgeHtml}
     ${sourceBar}
     <div class="body">
       ${badgeTag ? `<span class="tagpill">${escapeHtml(badgeTag)}</span>` : ""}
@@ -2602,7 +2672,7 @@ function postCardHtml(p, sectionTag){
       <div class="foot">
         <span>${timeAgo(p.created_at)}</span>
         <div class="foot-actions">
-          ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="toggleChecked('${p.id}', this)" title="${p.checked?'ยกเลิกตรวจแล้ว':'ทำเครื่องหมายว่าตรวจแล้ว'}">✓</button>` : ""}
+          ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="handleCheckClick('${p.id}')" title="${p.checked?'ตรวจแล้ว — กดดู/แก้คะแนน':'ตรวจงาน + ให้คะแนน'}">✓</button>` : ""}
           <button class="heart-btn ${liked}" onclick="toggleLike('${p.id}', this)">❤️ <span>${p.likes||0}</span></button>
           <button class="comment-btn" onclick="openComments('${p.id}')" title="ดูความคิดเห็นทั้งหมด">💬 <span>${p.comment_count||0}</span></button>
         </div>
@@ -2664,6 +2734,24 @@ function renderViewPost(){
   const p = state.posts.find(x=>x.id===state.viewingPostId);
   if(!p) return;
   const liked = localStorage.getItem("liked_"+p.id) ? "liked" : "";
+  // สถานะตรวจงาน (เหมือนบนการ์ด)
+  const lbSec = state.sections.find(s=>s.id===p.section_id);
+  const lbAssignment = lbSec && lbSec.assignment_id ? (state.roomAssignments||[]).find(a=>a.id===lbSec.assignment_id) : null;
+  let lbStatusHtml = "";
+  if(lbAssignment){
+    const maxS = lbAssignment.max_score ?? 10;
+    const passS = lbAssignment.pass_score;
+    if(!p.checked){
+      lbStatusHtml = `<span class="status-badge-inline status-pending">🕐 รอตรวจ</span>`;
+    } else {
+      const belowPass = (passS!==null && passS!==undefined) && p.score!==null && p.score!==undefined && parseFloat(p.score) < passS;
+      lbStatusHtml = belowPass
+        ? `<span class="status-badge-inline status-retake">⚠️ ต้องสอบแก้ · ${p.score}/${maxS}</span>`
+        : `<span class="status-badge-inline status-done">✅ ตรวจแล้ว · ${(p.score!==null && p.score!==undefined) ? p.score : "?"}/${maxS}</span>`;
+    }
+  } else if(p.checked){
+    lbStatusHtml = `<span class="checked-badge-lg">✓ ครูตรวจแล้ว</span>`;
+  }
   // สื่อด้านซ้าย: รูป > ถ้าไม่มีรูปแต่มีลิงก์/ไฟล์ แสดงปุ่มเปิด
   let media = "";
   if(p.image_url){
@@ -2706,7 +2794,7 @@ function renderViewPost(){
 
   const sourceLink = p.link_url ? `<a href="${p.link_url}" target="_blank" rel="noopener" class="lightbox-source">🔗 ${escapeHtml(extractDomain(p.link_url))}</a>` : "";
   document.getElementById("lightboxSide").innerHTML = `
-    ${p.checked ? `<span class="checked-badge-lg">✓ ครูตรวจแล้ว</span>` : ""}
+    ${lbStatusHtml}
     ${p.tag ? `<span class="tagpill">${escapeHtml(p.tag)}</span>` : ""}
     <h2 class="lightbox-name">${p.student_no ? `<span class="student-no">เลขที่ ${p.student_no}</span> ` : ""}${escapeHtml(p.student_name)||"ผลงานนักเรียน"}</h2>
     ${p.description ? `<p class="lightbox-desc">${escapeHtml(p.description)}</p>` : ""}
@@ -2714,7 +2802,7 @@ function renderViewPost(){
     <div class="lightbox-time">${timeAgo(p.created_at)}</div>
     <div class="lightbox-actions">
       <button class="heart-btn ${liked}" onclick="toggleLike('${p.id}', this); renderViewPostLater();">❤️ <span>${p.likes||0}</span></button>
-      ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="toggleChecked('${p.id}', this); renderViewPostLater();" title="ตรวจแล้ว">✓</button>` : ""}
+      ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="handleCheckClick('${p.id}')" title="${p.checked?'ตรวจแล้ว — กดดู/แก้คะแนน':'ตรวจงาน + ให้คะแนน'}">✓</button>` : ""}
     </div>
     <div class="lightbox-comments-head">💬 ความคิดเห็น</div>
     <div id="lightboxComments" class="lightbox-comments"><div class="loading">กำลังโหลด...</div></div>
@@ -2883,7 +2971,8 @@ async function deleteComment(commentId){
 }
 
 // ครูติ๊กว่าตรวจงานนี้แล้ว / ยกเลิก
-async function toggleChecked(postId, btn){
+// เดิม (SQL Part 16) — ติ๊กตรวจแล้ว/ยกเลิก เฉยๆ ไม่มีคะแนน ใช้กับคอลัมน์ที่ไม่ได้ผูกรายการงาน
+async function toggleChecked(postId){
   if(!state.isAdmin) return; // กันไว้อีกชั้น เฉพาะครูเท่านั้น
   const post = state.posts.find(p=>p.id===postId);
   if(!post) return;
@@ -2894,6 +2983,128 @@ async function toggleChecked(postId, btn){
   showToast(newChecked ? "ทำเครื่องหมายตรวจแล้ว ✓" : "ยกเลิกตรวจแล้ว");
   await refreshPostsSilently();
 }
+
+/* ---------------------------- ✅ ตรวจงาน + ให้คะแนนจากบอร์ด (Part 19) ---------------------------- */
+// กดปุ่ม ✓ บนการ์ด: ถ้าคอลัมน์ผูกกับรายการงาน -> เปิด popup ใส่คะแนน / ถ้าไม่ผูก -> ติ๊กแบบเดิม
+function handleCheckClick(postId){
+  if(!state.isAdmin) return;
+  const post = state.posts.find(p=>p.id===postId);
+  if(!post) return;
+  const sec = state.sections.find(s=>s.id===post.section_id);
+  const assignment = sec && sec.assignment_id ? (state.roomAssignments||[]).find(a=>a.id===sec.assignment_id) : null;
+  if(!assignment){
+    // คอลัมน์นี้ไม่ได้ผูกกับรายการงาน — ตรวจได้อย่างเดียว ให้คะแนนไม่ได้ (ตามที่แจ้งไว้ตอนอนุมัติแผน)
+    toggleChecked(postId);
+    return;
+  }
+  openGradePost(postId, assignment);
+}
+// เปิด popup ใส่คะแนน — จับคู่นักเรียนอัตโนมัติถ้าโพสต์มีเลขที่ ถ้าไม่มีให้ครูเลือกเอง
+async function openGradePost(postId, assignment){
+  const post = state.posts.find(p=>p.id===postId);
+  if(!post) return;
+  document.getElementById("gradePostId").value = postId;
+  document.getElementById("gradeAssignmentId").value = assignment.id;
+  document.getElementById("gradeMaxScore").value = assignment.max_score ?? 10;
+  document.getElementById("gradePassScore").value = (assignment.pass_score ?? "");
+  document.getElementById("gradeAssignmentHint").innerHTML =
+    `📌 <b>${escapeHtml(assignment.title)}</b> · เต็ม ${assignment.max_score ?? 10} คะแนน${(assignment.pass_score!==null && assignment.pass_score!==undefined) ? ` · เกณฑ์ผ่าน ${assignment.pass_score}` : ""}`;
+  document.getElementById("gradeScoreLabel").textContent = `คะแนนที่ได้ (เต็ม ${assignment.max_score ?? 10})`;
+  document.getElementById("gradeScoreInput").max = assignment.max_score ?? 10;
+  document.getElementById("gradeScoreInput").value = (post.score!==null && post.score!==undefined) ? post.score : "";
+  document.getElementById("gradeUncheckBtn").style.display = post.checked ? "inline-block" : "none";
+
+  const knownWrap = document.getElementById("gradeStudentKnownWrap");
+  const pickWrap = document.getElementById("gradeStudentPickWrap");
+  let studentId = null;
+
+  if(post.student_no){
+    const st = (state.roomStudents||[]).find(s=>s.no===post.student_no);
+    if(st){
+      studentId = st.id;
+      knownWrap.style.display = "block";
+      pickWrap.style.display = "none";
+      document.getElementById("gradeStudentFixedLabel").innerHTML = `<span class="student-no">เลขที่ ${st.no}</span> ${escapeHtml(st.name)}`;
+      knownWrap.dataset.studentId = st.id;
+    }
+  }
+  if(!studentId){
+    // ไม่รู้ว่าเป็นของใคร — ให้ครูเลือกเอง จาก dropdown รายชื่อในห้อง
+    knownWrap.style.display = "none";
+    pickWrap.style.display = "block";
+    const sel = document.getElementById("gradeStudentSelect");
+    const list = state.roomStudents || [];
+    sel.innerHTML = '<option value="">— เลือกนักเรียน —</option>' +
+      list.map(s=>`<option value="${s.id}">เลขที่ ${s.no} — ${escapeHtml(s.name)}</option>`).join("");
+    sel.value = "";
+  }
+
+  openModal("modalGradePost");
+
+  // ถ้ารู้นักเรียนแล้ว ลองดึงคะแนนเดิมจากระบบเช็คงานมาเติมให้ (เผื่อเคยให้คะแนนผ่านหน้ากรอกคะแนนไว้ก่อน)
+  if(studentId){
+    const { data } = await supabaseClient.from("submissions").select("score")
+      .eq("student_id", studentId).eq("assignment_id", assignment.id).maybeSingle();
+    if(data && data.score!==null && data.score!==undefined){
+      document.getElementById("gradeScoreInput").value = data.score;
+    }
+  }
+}
+// เมื่อครูเลือกนักเรียนจาก dropdown (กรณีโพสต์ไม่มีเลขที่) -> ลองดึงคะแนนเดิมมาเติมให้เช่นกัน
+async function onGradeStudentPick(){
+  const studentId = document.getElementById("gradeStudentSelect").value;
+  const assignmentId = document.getElementById("gradeAssignmentId").value;
+  if(!studentId || !assignmentId) return;
+  const { data } = await supabaseClient.from("submissions").select("score")
+    .eq("student_id", studentId).eq("assignment_id", assignmentId).maybeSingle();
+  document.getElementById("gradeScoreInput").value = (data && data.score!==null && data.score!==undefined) ? data.score : "";
+}
+// บันทึกคะแนน — เขียนเข้า submissions (ระบบเดียวกับ Dashboard/กรอกคะแนน) + อัปเดต posts (checked + score) ให้โชว์บนการ์ดเร็ว
+async function saveGradePost(){
+  const postId = document.getElementById("gradePostId").value;
+  const assignmentId = document.getElementById("gradeAssignmentId").value;
+  const maxScore = parseFloat(document.getElementById("gradeMaxScore").value);
+  const knownWrap = document.getElementById("gradeStudentKnownWrap");
+  const studentId = knownWrap.style.display!=="none" ? knownWrap.dataset.studentId : document.getElementById("gradeStudentSelect").value;
+
+  if(!studentId){ showToast("เลือกนักเรียนก่อนนะ"); return; }
+  const raw = document.getElementById("gradeScoreInput").value.trim();
+  if(raw===""){ showToast("กรอกคะแนนก่อนนะ"); return; }
+  const score = parseFloat(raw);
+  if(isNaN(score) || score<0){ showToast("คะแนนไม่ถูกต้อง"); return; }
+  if(score > maxScore){ showToast(`คะแนนเกินคะแนนเต็ม (เต็ม ${maxScore})`); return; }
+
+  // บันทึกเข้า submissions แบบ upsert (ชนกันที่ student_id+assignment_id ตามที่ตั้ง unique ไว้)
+  const { error: subErr } = await supabaseClient.from("submissions")
+    .upsert({ student_id: studentId, assignment_id: assignmentId, score, updated_at: new Date().toISOString() }, { onConflict: "student_id,assignment_id" });
+  if(subErr){ showErr("บันทึกคะแนนไม่สำเร็จ", subErr); return; }
+
+  // อัปเดตโพสต์: ติ๊กตรวจแล้ว + เก็บคะแนนไว้โชว์บนการ์ดเร็วๆ + ผูกเลขที่ให้ถ้ายังไม่มี (เผื่อเลือกเองจาก dropdown)
+  const post = state.posts.find(p=>p.id===postId);
+  const pickedStudent = (state.roomStudents||[]).find(s=>s.id===studentId);
+  const updatePayload = { checked: true, score };
+  if(post && !post.student_no && pickedStudent) updatePayload.student_no = pickedStudent.no;
+  const { error: postErr } = await supabaseClient.from("posts").update(updatePayload).eq("id", postId);
+  if(postErr){ showErr("บันทึกคะแนนในระบบเช็คงานสำเร็จ แต่อัปเดตการ์ดไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 19)", postErr); return; }
+
+  if(post){ post.checked = true; post.score = score; if(updatePayload.student_no) post.student_no = updatePayload.student_no; }
+  closeModal("modalGradePost");
+  showToast("บันทึกคะแนนแล้ว ✅");
+  await refreshPostsSilently();
+}
+// ยกเลิกการตรวจ (ล้าง checked + คะแนนบนโพสต์) — ไม่ลบคะแนนออกจากระบบเช็คงาน เผื่อครูให้คะแนนไว้ในหน้ากรอกคะแนนแยกต่างหาก
+async function uncheckFromGradeModal(){
+  const postId = document.getElementById("gradePostId").value;
+  const post = state.posts.find(p=>p.id===postId);
+  if(!post) return;
+  const { error } = await supabaseClient.from("posts").update({ checked: false }).eq("id", postId);
+  if(error){ showErr("ยกเลิกไม่สำเร็จ", error); return; }
+  post.checked = false;
+  closeModal("modalGradePost");
+  showToast("ยกเลิกตรวจแล้ว");
+  await refreshPostsSilently();
+}
+
 async function togglePinPost(postId){
   closeAllPostMenus();
   const post = state.posts.find(p=>p.id===postId);
@@ -4267,6 +4478,28 @@ function renderScoreGrid(){
   wrap.innerHTML = html;
 }
 // พิมพ์คะแนนแล้วกดออกจากช่อง (Tab/คลิกที่อื่น/ลูกศร) จะบันทึกอัตโนมัติ — ไม่ rebuild ตารางทั้งหมด กันหน้าเด้ง/เสียโฟกัส
+// 🔗 เชื่อม 2 ทาง (Part 19): ให้คะแนนจากหน้านี้แล้ว sync กลับไปอัปเดตการ์ดในบอร์ดผลงานด้วย
+// (ถ้ามีคอลัมน์บอร์ดผูกกับงานนี้ไว้ + มีโพสต์ของนักเรียนคนนี้เลขที่ตรงกันในคอลัมน์นั้น)
+async function syncScoreToLinkedBoardPosts(studentId, assignmentId, score){
+  try{
+    const studentIdx = state.students.findIndex(s=>s.id===studentId);
+    if(studentIdx<0) return;
+    const studentNo = studentIdx + 1;
+    const { data: linkedSections } = await supabaseClient.from("board_sections").select("id").eq("assignment_id", assignmentId);
+    const sectionIds = (linkedSections||[]).map(s=>s.id);
+    if(sectionIds.length===0) return;
+    await supabaseClient.from("posts")
+      .update({ checked: score!==null, score })
+      .in("section_id", sectionIds)
+      .eq("student_no", studentNo);
+    // ถ้ากำลังเปิดบอร์ดของห้องนี้ค้างอยู่ (state.posts มีข้อมูล) ให้อัปเดตในหน่วยความจำด้วย จะได้เห็นผลทันทีถ้าสลับแท็บกลับไปดู
+    (state.posts||[]).forEach(p=>{
+      if(sectionIds.includes(p.section_id) && p.student_no===studentNo){ p.checked = score!==null; p.score = score; }
+    });
+  }catch(e){
+    // เงียบไว้ — ฟีเจอร์เสริม ไม่บล็อกการบันทึกคะแนนหลักถ้ายังไม่ได้รัน SQL Part 19
+  }
+}
 async function saveScore(studentId, assignmentId, input, maxScore){
   const raw = input.value.trim();
   const score = raw === "" ? null : parseFloat(raw);
@@ -4289,6 +4522,7 @@ async function saveScore(studentId, assignmentId, input, maxScore){
   }
   if(error){ showErr("บันทึกคะแนนไม่สำเร็จ", error); return; }
   showToast(score===null ? "ล้างคะแนนแล้ว" : "บันทึกคะแนนแล้ว ✅");
+  syncScoreToLinkedBoardPosts(studentId, assignmentId, score); // 🔗 เชื่อมกลับไปที่การ์ดในบอร์ด (Part 19)
   refreshBelowPassBanner(); // อัปเดตแถบสรุปเท่านั้น ไม่แตะตาราง จะได้ไม่เสียโฟกัส/หน้าไม่เด้ง
 }
 // คำนวณและอัปเดตข้อความในแถบสรุป "คนที่ยังไม่ผ่านเกณฑ์" แบบสด
