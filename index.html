@@ -324,6 +324,28 @@
   .post-card h4{font-size:1.05rem; font-weight:600; margin-bottom:5px; line-height:1.35;}
   .student-no{display:inline-block; background:var(--brand); color:#3D2400; font-size:.72rem; font-weight:700; padding:1px 8px; border-radius:6px; vertical-align:middle;}
   .grade-student-fixed{padding:11px 14px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; font-weight:600; font-size:.95rem;}
+  /* ---------- ✅ Modal ให้คะแนน (ดีไซน์ใหม่) ---------- */
+  .grade-modal{max-width:440px;}
+  .grade-modal-head{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+  .grade-modal-icon{font-size:1.6rem;}
+  .grade-modal-head h3{margin:0; font-size:1.25rem;}
+  .grade-assignment-card{
+    display:flex; align-items:center; gap:10px; background:linear-gradient(135deg, rgba(46,107,230,.08), rgba(253,184,51,.10));
+    border:1px solid rgba(46,107,230,.18); border-radius:14px; padding:12px 14px; margin-bottom:18px;
+  }
+  .grade-pin{font-size:1.3rem; flex:0 0 auto;}
+  .grade-assignment-card b{display:block; font-size:.95rem; margin-bottom:2px;}
+  .grade-assignment-sub{font-size:.78rem; color:var(--muted);}
+  .grade-score-input-wrap{display:flex; align-items:center; gap:8px; background:var(--surface); border:2px solid var(--border); border-radius:14px; padding:10px 16px; transition:.15s border-color;}
+  .grade-score-input-wrap:focus-within{border-color:var(--brand);}
+  .grade-score-input-wrap input{flex:1; min-width:0; border:none; background:transparent; font-size:1.7rem; font-weight:700; font-family:'Kanit',sans-serif; color:var(--text); padding:0; text-align:center;}
+  .grade-score-input-wrap input:focus{outline:none;}
+  .grade-score-max{font-size:1.1rem; font-weight:600; color:var(--muted); flex:0 0 auto;}
+  .grade-pass-indicator{margin-top:9px; font-size:.8rem; font-weight:600; min-height:1.2em;}
+  .grade-pass-ok{color:#12A150;}
+  .grade-pass-no{color:#E5484D;}
+  .grade-save-btn{width:100%; font-size:1.02rem; padding:14px; display:flex; align-items:center; justify-content:center; gap:8px;}
+  [data-theme="dark"] .grade-assignment-card{background:linear-gradient(135deg, rgba(77,150,255,.1), rgba(253,184,51,.08)); border-color:rgba(77,150,255,.22);}
   .post-card p{font-size:.85rem; color:var(--muted); margin-bottom:10px; line-height:1.5;}
   .post-card .foot{display:flex; justify-content:space-between; align-items:center; font-size:.75rem; color:var(--muted); margin-top:4px;}
   .heart-btn{border:none; background:none; cursor:pointer; font-size:1rem; display:flex; align-items:center; gap:4px; color:#FF5D8F;}
@@ -437,9 +459,15 @@
   .fab{position:fixed; bottom:24px; right:24px; background:var(--brand); color:#fff; border:none; border-radius:999px; padding:16px 22px; font-size:1rem; font-weight:700; box-shadow:0 8px 24px rgba(253,184,51,.5); cursor:pointer; z-index:40;}
   /* ---------- Modal ---------- */
   .modal-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end; justify-content:center;}
-  .modal-overlay.active{display:flex;}
+  .modal-overlay.active{display:flex; animation:overlayFadeIn .18s ease;}
+  @keyframes overlayFadeIn{from{background:rgba(0,0,0,0);} to{background:rgba(0,0,0,.45);}}
   .modal{background:var(--card); color:var(--text); width:100%; max-width:520px; border-radius:24px 24px 0 0; padding:24px 20px 30px; max-height:90vh; overflow-y:auto; animation:slideUp .25s ease;}
-  @media(min-width:640px){.modal-overlay{align-items:center;} .modal{border-radius:24px;}}
+  /* บนจอกว้าง (เดสก์ท็อป) ใช้ป๊อปอัพลอยกลางจอแบบทันสมัย แทน bottom-sheet เลื่อนขึ้นจากล่างแบบมือถือ */
+  @media(min-width:640px){
+    .modal-overlay{align-items:center;}
+    .modal{border-radius:24px; animation:modalPopIn .22s cubic-bezier(.22,1,.36,1);}
+  }
+  @keyframes modalPopIn{from{transform:scale(.93) translateY(10px); opacity:0;} to{transform:scale(1) translateY(0); opacity:1;}}
   .modal-lg{max-width:640px;}
   /* ---------- Dialog กลาง (confirm/prompt สวยๆ) ---------- */
   .modal-dialog{max-width:420px;}
@@ -615,25 +643,33 @@
   .checklist-scroll::-webkit-scrollbar-thumb{background:var(--border); border-radius:999px; border:2px solid var(--surface);}
   .checklist-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted);}
   table.checklist-table{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%;}
-  table.checklist-table th, table.checklist-table td{padding:10px 14px; text-align:center; border-bottom:1px solid var(--border); white-space:nowrap; font-size:.85rem;}
+  table.checklist-table th, table.checklist-table td{padding:12px 16px; text-align:center; border-bottom:1px solid var(--border); white-space:nowrap; font-size:.85rem;}
   table.checklist-table th{background:var(--surface); font-weight:600; color:var(--text); position:sticky; top:0; z-index:2;}
   table.checklist-table td:first-child, table.checklist-table th:first-child{
     text-align:left; position:sticky; left:0; background:var(--card); font-weight:500;
     box-shadow:2px 0 6px rgba(0,0,0,.15);
   }
   table.checklist-table th:first-child{background:var(--surface); z-index:3;}
-  .mark-yes{color:var(--green); font-size:1.1rem;}
-  .mark-no{color:var(--border); font-size:1.1rem;}
+  table.checklist-table tbody tr{transition:.12s background;}
+  table.checklist-table tbody tr:hover{background:var(--surface);}
+  table.checklist-table tbody tr:hover td:first-child{background:var(--surface);}
+  table.checklist-table tbody tr:last-child td{border-bottom:none;}
+  /* ---------- ⚪ วงกลมสถานะ (ส่งแล้ว/ยังไม่ส่ง/สอบแก้) — จัดระเบียบให้เป็นแบบเดียวกันหมด ---------- */
+  .status-cell{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:30px;}
+  .status-dot{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:700; flex:0 0 auto;}
+  .status-dot.dot-yes{background:#12A150; color:#fff;}
+  .status-dot.dot-no{background:transparent; border:1.5px dashed var(--border);}
+  .status-dot.dot-retake{background:#E5484D; color:#fff; font-size:.8rem;}
+  .status-sublabel{font-size:.6rem; font-weight:700; letter-spacing:.2px;}
+  .status-sublabel.retake{color:#E5484D;}
+  [data-theme="dark"] .status-sublabel.retake{color:#FF8A8D;}
   .progress-pill{font-size:.7rem; padding:2px 8px; border-radius:999px; background:var(--surface); color:var(--muted); display:inline-block; margin-top:3px;}
   /* ⚠️ ต้องสอบแก้ (ส่งแล้วแต่คะแนนไม่ถึงเกณฑ์ผ่าน) — ฝั่งนักเรียน */
-  .mark-retake{display:inline-flex; flex-direction:column; align-items:center; gap:1px; color:#E5484D; font-size:1.05rem; line-height:1;}
-  .retake-label{font-size:.6rem; font-weight:700; letter-spacing:.3px;}
   .progress-pill.pill-retake{background:#FDECEC; color:#C11C22; font-weight:700;}
   tr.row-need-retake td{background:rgba(229,72,77,.05);}
   tr.row-need-retake td:first-child{background:#FFF5F5; box-shadow:inset 3px 0 0 #E5484D, 2px 0 6px rgba(0,0,0,.1);}
   .dash-card-retake{border-color:#F5B5B7; background:linear-gradient(180deg,#FFF5F5,var(--card));}
   .dash-card-retake .num{color:#C11C22;}
-  [data-theme="dark"] .mark-retake{color:#FF8A8D;}
   [data-theme="dark"] .progress-pill.pill-retake{background:rgba(229,72,77,.18); color:#FFB4B6;}
   [data-theme="dark"] tr.row-need-retake td{background:rgba(229,72,77,.09);}
   [data-theme="dark"] tr.row-need-retake td:first-child{background:rgba(229,72,77,.16); box-shadow:inset 3px 0 0 #E5484D, 2px 0 6px rgba(0,0,0,.3);}
@@ -666,8 +702,12 @@
   .dash-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px;}
   .dash-card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px 16px; box-shadow:var(--shadow); text-align:center; transition:.2s transform;}
   .dash-card:hover{transform:translateY(-3px);}
+  .dash-card-icon{font-size:1.5rem; margin-bottom:6px;}
   .dash-card .num{font-size:1.8rem; font-weight:700; color:var(--accent);}
   .dash-card .lbl{font-size:.8rem; color:var(--muted); margin-top:2px;}
+  /* สีเฉพาะของการ์ดแต่ละแบบ ให้แยกความหมายได้ทันทีที่มองเห็น */
+  .dash-card-complete .num{color:#12A150;}
+  .dash-card-pending .num{color:#E08A00;}
   .dash-list-item{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:.9rem;}
   /* ⚠️ รายการนักเรียนที่ต้องสอบแก้ (Dashboard ครู) */
   .retake-list-item{align-items:flex-start; gap:12px;}
@@ -1189,17 +1229,19 @@
 <!-- ============ MODAL: VIEW POST (ดูผลงานเต็มแบบ Padlet) ============ -->
 <!-- ============ MODAL: ตรวจงาน + ให้คะแนนจากบอร์ด ============ -->
 <div id="modalGradePost" class="modal-overlay">
-  <div class="modal">
+  <div class="modal grade-modal">
     <button class="close-x" onclick="closeModal('modalGradePost')">✕</button>
-    <h3>✅ ตรวจงาน + ให้คะแนน</h3>
-    <p class="hint" id="gradeAssignmentHint" style="margin-bottom:14px;"></p>
+    <div class="grade-modal-head">
+      <span class="grade-modal-icon">✅</span>
+      <h3>ตรวจงาน + ให้คะแนน</h3>
+    </div>
+    <div class="grade-assignment-card" id="gradeAssignmentHint"></div>
     <input type="hidden" id="gradePostId">
     <input type="hidden" id="gradeAssignmentId">
     <input type="hidden" id="gradeMaxScore">
     <input type="hidden" id="gradePassScore">
 
     <div class="field" id="gradeStudentKnownWrap" style="display:none;">
-      <label>นักเรียน</label>
       <div class="grade-student-fixed" id="gradeStudentFixedLabel"></div>
     </div>
     <div class="field" id="gradeStudentPickWrap" style="display:none;">
@@ -1211,12 +1253,16 @@
 
     <div class="field">
       <label id="gradeScoreLabel">คะแนนที่ได้</label>
-      <input type="number" id="gradeScoreInput" inputmode="decimal" placeholder="กรอกคะแนน" min="0">
+      <div class="grade-score-input-wrap">
+        <input type="number" id="gradeScoreInput" inputmode="decimal" placeholder="0" min="0" oninput="onGradeScoreInput()">
+        <span class="grade-score-max" id="gradeScoreMaxLabel">/ 10</span>
+      </div>
+      <div class="grade-pass-indicator" id="gradePassIndicator"></div>
     </div>
 
     <div class="modal-actions">
       <button class="btn btn-outline" id="gradeUncheckBtn" onclick="uncheckFromGradeModal()" style="display:none;">ยกเลิกตรวจ</button>
-      <button class="btn btn-primary" onclick="saveGradePost()">บันทึกคะแนน ✓</button>
+      <button class="btn btn-primary grade-save-btn" onclick="saveGradePost()"><span>บันทึกคะแนน</span> ✓</button>
     </div>
   </div>
 </div>
@@ -1291,6 +1337,7 @@
       <select id="sectionAssignmentSelect">
         <option value="">— ไม่ผูก (ตรวจได้อย่างเดียว ให้คะแนนไม่ได้) —</option>
       </select>
+      <p class="hint" style="margin-top:6px;">ไม่เจอรายการงานที่ต้องการ? <a href="#" onclick="event.preventDefault(); quickCreateAssignmentFromSection();" style="color:var(--accent); font-weight:600;">➕ สร้างรายการงานใหม่ตรงนี้เลย</a></p>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modalSection')">ยกเลิก</button>
@@ -1752,6 +1799,7 @@ async function Maps(hash){
   switch(route){
     case "":
     case "home":
+      unsubscribeRealtime(); // ออกจากห้องแล้ว ปิดการรับอัปเดตสด
       showScreen("screen-home");
       loadClassrooms();
       loadGlobalStats();
@@ -1764,6 +1812,7 @@ async function Maps(hash){
       break;
 
     case "admin":
+      unsubscribeRealtime(); // ออกจากห้องแล้ว ปิดการรับอัปเดตสด
       if(!state.isAdmin){
         // ยังไม่ได้ Login เช่นตอน Refresh หน้าตรงๆ -> พากลับหน้าหลักแล้วเด้งถาม Login
         navigate("home");
@@ -2017,6 +2066,7 @@ async function openClassroom(id){
   // โหลดรายการงานของห้องนี้ไว้ (ใช้ผูกคอลัมน์กับรายการงาน + ให้คะแนนตอนตรวจงานจากบอร์ด)
   loadRoomAssignments();
   await loadPosts();
+  subscribeRealtimeBoard(room.id); // 🔴 เปิดรับอัปเดตแบบเรียลไทม์ — นักเรียนส่งงาน/ครูตรวจงาน จะเด้งขึ้นเองไม่ต้องรีเฟรช
 }
 // โหลดรายชื่อนักเรียนของห้องปัจจุบัน เรียงตามลำดับ (= เลขที่)
 async function loadRoomStudents(){
@@ -2031,6 +2081,64 @@ async function loadRoomAssignments(){
     .eq("classroom_id", state.currentClassroom.id).order("order_index",{ascending:true});
   state.roomAssignments = data || [];
 }
+
+/* ---------------------------- 🔴 Realtime: บอร์ดอัปเดตสดโดยไม่ต้องรีเฟรช ---------------------------- */
+let realtimeChannel = null;
+let realtimeRefreshTimer = null;
+function unsubscribeRealtime(){
+  if(realtimeChannel){
+    try{ supabaseClient.removeChannel(realtimeChannel); }catch(e){}
+    realtimeChannel = null;
+  }
+}
+// เปิดรับฟังการเปลี่ยนแปลงของห้องนี้ (โพสต์ใหม่/แก้ไข/ลบ + คอลัมน์เปลี่ยน) จาก Supabase Realtime
+function subscribeRealtimeBoard(classroomId){
+  unsubscribeRealtime();
+  if(!classroomId) return;
+  realtimeChannel = supabaseClient
+    .channel("board-"+classroomId)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "posts", filter: `classroom_id=eq.${classroomId}` }, onRealtimePostInsert)
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "posts", filter: `classroom_id=eq.${classroomId}` }, onRealtimePostUpdate)
+    .on("postgres_changes", { event: "*", schema: "public", table: "board_sections", filter: `classroom_id=eq.${classroomId}` }, onRealtimeSectionChange)
+    .subscribe();
+}
+// โพสต์ใหม่เข้ามา (นักเรียนส่งงาน) — โครงสร้างการเรียงลำดับ/ปักหมุดซับซ้อน rebuild ทั้งคอลัมน์ปลอดภัยสุด (ตำแหน่งเลื่อนถูกรักษาไว้ให้แล้ว)
+function onRealtimePostInsert(payload){
+  const p = payload.new;
+  if(!p || p.deleted_at) return;
+  if(state.posts.some(x=>x.id===p.id)) return; // กันซ้ำ เผื่อเป็น echo ของการกระทำตัวเอง
+  if(!state.currentClassroom || p.classroom_id !== state.currentClassroom.id) return;
+  if(state.classroomTab === "board") refreshPostsSilently();
+  else if(state.classroomTab === "checklist") loadChecklist();
+}
+// โพสต์มีการแก้ไข (ตรวจงาน/ให้คะแนน/หัวใจ/ปักหมุด/ลบ ฯลฯ) — อัปเดตเฉพาะการ์ดนั้น ไม่กระพริบทั้งบอร์ด
+// ครอบคลุมทั้งการกระทำของเราเอง (echo กลับมา) และของคนอื่น ใช้ทางเดียวกันหมด ปลอดภัยเพราะเนื้อหาซ้ำก็แค่แทนที่ด้วยของเดิม
+function onRealtimePostUpdate(payload){
+  const p = payload.new;
+  if(!p) return;
+  if(!state.currentClassroom || p.classroom_id !== state.currentClassroom.id) return;
+  const idx = state.posts.findIndex(x=>x.id===p.id);
+  if(p.deleted_at){
+    // ถูกลบไปแล้ว (soft delete) — เอาออกจากหน้าจอถ้ายังค้างอยู่
+    if(idx>=0) state.posts.splice(idx,1);
+    const el = document.querySelector(`.post-card[data-post-id="${p.id}"]`);
+    if(el) el.remove();
+    return;
+  }
+  if(idx>=0) state.posts[idx] = { ...state.posts[idx], ...p };
+  else state.posts.push(p);
+  if(state.classroomTab === "board") updatePostCardInPlace(p.id);
+  else if(state.classroomTab === "checklist") loadChecklist();
+}
+// คอลัมน์เปลี่ยน (เพิ่ม/แก้ชื่อ/ผูกรายการงาน/ลบ) — โครงสร้างเปลี่ยน rebuild ทั้งบอร์ดปลอดภัยสุด แต่หน่วงไว้กันยิงรัวๆ
+function onRealtimeSectionChange(payload){
+  const row = payload.new || payload.old;
+  if(!row || !state.currentClassroom || row.classroom_id !== state.currentClassroom.id) return;
+  if(state.classroomTab !== "board") return;
+  clearTimeout(realtimeRefreshTimer);
+  realtimeRefreshTimer = setTimeout(()=>refreshPostsSilently(), 400);
+}
+
 function switchClassroomTab(tab){
   state.classroomTab = tab;
   document.getElementById("tabBoardBtn").classList.toggle("active", tab==="board");
@@ -2061,6 +2169,22 @@ async function loadPosts(){
 // refresh แบบเงียบ: ดึงข้อมูลใหม่แล้ว render โดยไม่โชว์ loading (ใช้หลังเพิ่ม/แก้/ลบ ในโหมดคอลัมน์จะไม่กระพริบทั้งจอ)
 async function refreshPostsSilently(){
   await fetchAndRenderPosts(false); // refresh = ไม่เด้งซ้ำ กันกระตุก
+}
+// อัปเดต DOM เฉพาะการ์ดเดียว (ไม่แตะการ์ดอื่น/คอลัมน์อื่น) — ใช้หลังตรวจงาน/ให้คะแนน กันหน้ากระพริบหรือเด้งขึ้นบน
+// คืนค่า true ถ้าอัปเดตสำเร็จ, false ถ้าหาการ์ดนี้ในหน้าไม่เจอ (ผู้เรียกควร fallback ไป refreshPostsSilently แทน)
+function updatePostCardInPlace(postId){
+  const post = state.posts.find(p=>p.id===postId);
+  if(!post) return false;
+  const el = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+  if(!el) return false;
+  const sec = state.sections.find(s=>s.id===post.section_id);
+  const wasCommentsLoaded = el.querySelector(".card-comments")?.dataset.loaded === "1";
+  const temp = document.createElement("div");
+  temp.innerHTML = postCardHtml(post, sec ? sec.tag : null).trim();
+  const newEl = temp.firstElementChild;
+  el.replaceWith(newEl);
+  if(wasCommentsLoaded) loadCardComments(postId); // เคยเปิดคอมเมนต์ค้างไว้ — โหลดกลับมาแสดงต่อ
+  return true;
 }
 async function fetchAndRenderPosts(animate){
   const container = document.getElementById("postsContainer");
@@ -2144,6 +2268,15 @@ function renderShelfView(){
   const shelfEl = document.getElementById("shelfContainer");
   const list = state.posts;
 
+  // เก็บตำแหน่งเลื่อนไว้ก่อน rebuild (ทั้งแนวนอนของทั้งแถว + แนวตั้งของแต่ละคอลัมน์) — คืนกลับให้หลัง render กันจอเด้งขึ้นบนตอนมีข้อมูลใหม่เข้ามา (realtime)
+  const prevShelfScrollLeft = shelfEl.scrollLeft;
+  const prevColScroll = {};
+  shelfEl.querySelectorAll(".board-column[data-col-id]").forEach(colEl=>{
+    const cardsEl = colEl.querySelector(".board-column-cards");
+    const secId = colEl.getAttribute("data-col-id");
+    if(cardsEl && secId) prevColScroll[secId] = cardsEl.scrollTop;
+  });
+
   const columnsHtml = state.sections.map(sec=>{
     const cards = list.filter(p=>p.section_id===sec.id);
     return columnHtml(sec.title, cards, sec.id, true, sec.tag, sec.assignment_id);
@@ -2155,6 +2288,13 @@ function renderShelfView(){
     : "";
 
   shelfEl.innerHTML = columnsHtml + addColumnHtml;
+  // คืนตำแหน่งเลื่อนกลับ (ต้องทำหลัง innerHTML ตั้งเสร็จ)
+  shelfEl.scrollLeft = prevShelfScrollLeft;
+  shelfEl.querySelectorAll(".board-column[data-col-id]").forEach(colEl=>{
+    const secId = colEl.getAttribute("data-col-id");
+    const cardsEl = colEl.querySelector(".board-column-cards");
+    if(cardsEl && prevColScroll[secId]!=null) cardsEl.scrollTop = prevColScroll[secId];
+  });
   // โหลดคอมเมนต์ที่มีอยู่มาแสดงใต้การ์ดอัตโนมัติ (เฉพาะการ์ดที่มีคอมเมนต์ กันยิง query เปล่า)
   loadAllVisibleComments();
 }
@@ -2175,7 +2315,7 @@ function columnHtml(title, cards, sectionId, canManage, sectionTag, assignmentId
   const canDragCol = state.isAdmin && sectionId;
   const linkedAssignment = assignmentId ? (state.roomAssignments||[]).find(a=>a.id===assignmentId) : null;
   return `
-    <div class="board-column${canDragCol ? ' col-draggable' : ''}" ${canDragCol ? `data-col-id="${sectionId}"` : ''}
+    <div class="board-column${canDragCol ? ' col-draggable' : ''}" ${sectionId ? `data-col-id="${sectionId}"` : ''}
          ondragover="onColumnReorderOver(event,'${sectionId||''}')" ondragleave="onColumnReorderLeave(event)" ondrop="onColumnReorderDrop(event,'${sectionId||''}')">
       <div class="board-column-sticky"
            ${canDragCol ? `draggable="true" ondragstart="onColumnReorderStart(event,'${sectionId}')" ondragend="onColumnReorderEnd(event)"` : ''}>
@@ -2387,6 +2527,26 @@ function fillSectionAssignmentDropdown(currentId){
   opts += list.map(a=>`<option value="${a.id}" ${a.id===currentId?"selected":""}>${escapeHtml(a.title)} (เต็ม ${a.max_score ?? 10})</option>`).join("");
   sel.innerHTML = opts;
 }
+// สร้างรายการงานใหม่ทางลัด จากในหน้าจัดการคอลัมน์บอร์ด (ไม่ต้องสลับไปแผงควบคุมครู)
+// ใช้ชื่อคอลัมน์ที่กำลังพิมพ์อยู่เป็นชื่อตั้งต้นให้ ปรับได้ก่อนยืนยัน
+async function quickCreateAssignmentFromSection(){
+  const suggestedTitle = document.getElementById("sectionTitleInput").value.trim() || "งานใหม่";
+  const title = await showPrompt("ชื่อรายการงาน:", suggestedTitle, { title: "➕ สร้างรายการงานใหม่", okText: "สร้าง" });
+  if(title===null || !title.trim()) return;
+  const maxRaw = await showPrompt("คะแนนเต็ม:", "10", { title: "🎯 คะแนนเต็ม", okText: "ต่อไป" });
+  if(maxRaw===null) return;
+  const maxScore = parseFloat(maxRaw);
+  if(isNaN(maxScore) || maxScore<=0){ showToast("คะแนนเต็มไม่ถูกต้อง"); return; }
+
+  const { data, error } = await supabaseClient.from("assignments")
+    .insert({ classroom_id: state.currentClassroom.id, title: title.trim(), max_score: maxScore, work_type: "งานเดี่ยว", order_index: (state.roomAssignments||[]).length })
+    .select().single();
+  if(error){ showErr("สร้างรายการงานไม่สำเร็จ", error); return; }
+
+  state.roomAssignments.push(data);
+  fillSectionAssignmentDropdown(data.id); // เติม dropdown ใหม่ + เลือกอันที่เพิ่งสร้างให้อัตโนมัติ
+  showToast(`สร้าง "${data.title}" แล้ว และผูกให้อัตโนมัติ ✅`);
+}
 // บันทึก — ใช้ปุ่มเดียวทั้งเพิ่มและแก้ไข (ดูจาก editSectionId)
 async function saveSection(){
   const id = document.getElementById("editSectionId").value;
@@ -2590,13 +2750,14 @@ function postCardHtml(p, sectionTag){
   if(gradeAssignment){
     const maxS = gradeAssignment.max_score ?? 10;
     const passS = gradeAssignment.pass_score;
+    const scoreText = state.isAdmin ? ` · ${(p.score!==null && p.score!==undefined) ? p.score : "?"}/${maxS}` : ""; // นักเรียนเห็นแค่สถานะ ไม่เห็นคะแนน
     if(!p.checked){
       statusBadgeHtml = `<span class="status-badge status-pending" title="ยังไม่ได้ตรวจ">🕐 รอตรวจ</span>`;
     } else {
       const belowPass = (passS!==null && passS!==undefined) && p.score!==null && p.score!==undefined && parseFloat(p.score) < passS;
       statusBadgeHtml = belowPass
-        ? `<span class="status-badge status-retake" title="ได้ ${p.score}/${maxS} · เกณฑ์ผ่าน ${passS} — ต้องสอบแก้">⚠️ ต้องสอบแก้ · ${p.score}/${maxS}</span>`
-        : `<span class="status-badge status-done" title="ครูตรวจแล้ว">✅ ตรวจแล้ว · ${(p.score!==null && p.score!==undefined) ? p.score : "?"}/${maxS}</span>`;
+        ? `<span class="status-badge status-retake" title="${state.isAdmin ? `ได้ ${p.score}/${maxS} · เกณฑ์ผ่าน ${passS} — ต้องสอบแก้` : "ต้องสอบแก้"}">⚠️ ต้องสอบแก้${scoreText}</span>`
+        : `<span class="status-badge status-done" title="ครูตรวจแล้ว">✅ ตรวจแล้ว${scoreText}</span>`;
     }
   } else if(p.checked){
     // คอลัมน์ไม่ได้ผูกกับรายการงาน — ใช้ป้ายเดิมแบบง่าย (ตรวจแล้ว เฉยๆ ไม่มีคะแนน)
@@ -2649,8 +2810,8 @@ function postCardHtml(p, sectionTag){
 
   return `
   <div class="post-card${p.pinned ? ' pinned-card' : ''}${state.isAdmin && state.sections.length>0 && !p.pinned ? ' draggable-card' : ''}"
-       ${state.isAdmin && state.sections.length>0 && !p.pinned ? `draggable="true" data-post-id="${p.id}" data-section-id="${p.section_id||''}"
-       ondragstart="onCardDragStart(event,'${p.id}')" ondragend="onCardDragEnd(event)"` : (state.isAdmin && state.sections.length>0 ? `data-post-id="${p.id}" data-section-id="${p.section_id||''}"` : '')}>
+       data-post-id="${p.id}" data-section-id="${p.section_id||''}"
+       ${state.isAdmin && state.sections.length>0 && !p.pinned ? `draggable="true" ondragstart="onCardDragStart(event,'${p.id}')" ondragend="onCardDragEnd(event)"` : ''}>
     ${state.isAdmin && state.sections.length>0 && !p.pinned ? `<span class="card-drag-handle" title="ลากเพื่อย้าย/จัดลำดับ">⠿</span>` : ''}
     <div class="post-menu-wrap no-print">
       <button class="post-menu-btn" onclick="togglePostMenu(event, '${p.id}')" title="ตัวเลือก">⋮</button>
@@ -2672,7 +2833,7 @@ function postCardHtml(p, sectionTag){
       <div class="foot">
         <span>${timeAgo(p.created_at)}</span>
         <div class="foot-actions">
-          ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="handleCheckClick('${p.id}')" title="${p.checked?'ตรวจแล้ว — กดดู/แก้คะแนน':'ตรวจงาน + ให้คะแนน'}">✓</button>` : ""}
+          ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="handleCheckClick('${p.id}')" title="${gradeAssignment ? (p.checked?'ตรวจแล้ว — กดดู/แก้คะแนน':'ตรวจงาน + ให้คะแนน') : (p.checked?'ยกเลิกตรวจแล้ว':'ทำเครื่องหมายว่าตรวจแล้ว (คอลัมน์นี้ยังไม่ผูกรายการงาน — ให้คะแนนไม่ได้ ผูกได้ที่เมนู ⋮ ของคอลัมน์)')}">✓</button>` : ""}
           <button class="heart-btn ${liked}" onclick="toggleLike('${p.id}', this)">❤️ <span>${p.likes||0}</span></button>
           <button class="comment-btn" onclick="openComments('${p.id}')" title="ดูความคิดเห็นทั้งหมด">💬 <span>${p.comment_count||0}</span></button>
         </div>
@@ -2741,13 +2902,14 @@ function renderViewPost(){
   if(lbAssignment){
     const maxS = lbAssignment.max_score ?? 10;
     const passS = lbAssignment.pass_score;
+    const scoreText = state.isAdmin ? ` · ${(p.score!==null && p.score!==undefined) ? p.score : "?"}/${maxS}` : "";
     if(!p.checked){
       lbStatusHtml = `<span class="status-badge-inline status-pending">🕐 รอตรวจ</span>`;
     } else {
       const belowPass = (passS!==null && passS!==undefined) && p.score!==null && p.score!==undefined && parseFloat(p.score) < passS;
       lbStatusHtml = belowPass
-        ? `<span class="status-badge-inline status-retake">⚠️ ต้องสอบแก้ · ${p.score}/${maxS}</span>`
-        : `<span class="status-badge-inline status-done">✅ ตรวจแล้ว · ${(p.score!==null && p.score!==undefined) ? p.score : "?"}/${maxS}</span>`;
+        ? `<span class="status-badge-inline status-retake">⚠️ ต้องสอบแก้${scoreText}</span>`
+        : `<span class="status-badge-inline status-done">✅ ตรวจแล้ว${scoreText}</span>`;
     }
   } else if(p.checked){
     lbStatusHtml = `<span class="checked-badge-lg">✓ ครูตรวจแล้ว</span>`;
@@ -2802,7 +2964,7 @@ function renderViewPost(){
     <div class="lightbox-time">${timeAgo(p.created_at)}</div>
     <div class="lightbox-actions">
       <button class="heart-btn ${liked}" onclick="toggleLike('${p.id}', this); renderViewPostLater();">❤️ <span>${p.likes||0}</span></button>
-      ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="handleCheckClick('${p.id}')" title="${p.checked?'ตรวจแล้ว — กดดู/แก้คะแนน':'ตรวจงาน + ให้คะแนน'}">✓</button>` : ""}
+      ${state.isAdmin ? `<button class="check-btn ${p.checked?'checked':''}" onclick="handleCheckClick('${p.id}')" title="${lbAssignment ? (p.checked?'ตรวจแล้ว — กดดู/แก้คะแนน':'ตรวจงาน + ให้คะแนน') : (p.checked?'ยกเลิกตรวจแล้ว':'ทำเครื่องหมายว่าตรวจแล้ว (คอลัมน์นี้ยังไม่ผูกรายการงาน — ให้คะแนนไม่ได้ ผูกได้ที่เมนู ⋮ ของคอลัมน์)')}">✓</button>` : ""}
     </div>
     <div class="lightbox-comments-head">💬 ความคิดเห็น</div>
     <div id="lightboxComments" class="lightbox-comments"><div class="loading">กำลังโหลด...</div></div>
@@ -2981,7 +3143,7 @@ async function toggleChecked(postId){
   if(error){ showErr("บันทึกไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 16)", error); return; }
   post.checked = newChecked;
   showToast(newChecked ? "ทำเครื่องหมายตรวจแล้ว ✓" : "ยกเลิกตรวจแล้ว");
-  await refreshPostsSilently();
+  if(!updatePostCardInPlace(postId)) await refreshPostsSilently(); // อัปเดตเฉพาะการ์ดนี้ กันหน้ากระพริบ/เด้ง — ถ้าหาการ์ดไม่เจอค่อย fallback
 }
 
 /* ---------------------------- ✅ ตรวจงาน + ให้คะแนนจากบอร์ด (Part 19) ---------------------------- */
@@ -3008,11 +3170,13 @@ async function openGradePost(postId, assignment){
   document.getElementById("gradeMaxScore").value = assignment.max_score ?? 10;
   document.getElementById("gradePassScore").value = (assignment.pass_score ?? "");
   document.getElementById("gradeAssignmentHint").innerHTML =
-    `📌 <b>${escapeHtml(assignment.title)}</b> · เต็ม ${assignment.max_score ?? 10} คะแนน${(assignment.pass_score!==null && assignment.pass_score!==undefined) ? ` · เกณฑ์ผ่าน ${assignment.pass_score}` : ""}`;
-  document.getElementById("gradeScoreLabel").textContent = `คะแนนที่ได้ (เต็ม ${assignment.max_score ?? 10})`;
+    `<span class="grade-pin">📌</span><div><b>${escapeHtml(assignment.title)}</b><span class="grade-assignment-sub">เต็ม ${assignment.max_score ?? 10} คะแนน${(assignment.pass_score!==null && assignment.pass_score!==undefined) ? ` · เกณฑ์ผ่าน ${assignment.pass_score}` : ""}</span></div>`;
+  document.getElementById("gradeScoreLabel").textContent = "คะแนนที่ได้";
+  document.getElementById("gradeScoreMaxLabel").textContent = `/ ${assignment.max_score ?? 10}`;
   document.getElementById("gradeScoreInput").max = assignment.max_score ?? 10;
   document.getElementById("gradeScoreInput").value = (post.score!==null && post.score!==undefined) ? post.score : "";
   document.getElementById("gradeUncheckBtn").style.display = post.checked ? "inline-block" : "none";
+  onGradeScoreInput(); // อัปเดตตัวชี้ผ่าน/ไม่ผ่านตามคะแนนเดิม (ถ้ามี)
 
   const knownWrap = document.getElementById("gradeStudentKnownWrap");
   const pickWrap = document.getElementById("gradeStudentPickWrap");
@@ -3058,6 +3222,20 @@ async function onGradeStudentPick(){
   const { data } = await supabaseClient.from("submissions").select("score")
     .eq("student_id", studentId).eq("assignment_id", assignmentId).maybeSingle();
   document.getElementById("gradeScoreInput").value = (data && data.score!==null && data.score!==undefined) ? data.score : "";
+  onGradeScoreInput();
+}
+// อัปเดตตัวชี้ "ผ่าน/ไม่ผ่าน" แบบสดขณะพิมพ์คะแนน (ให้ครูเห็นผลทันทีก่อนกดบันทึก)
+function onGradeScoreInput(){
+  const el = document.getElementById("gradePassIndicator");
+  const raw = document.getElementById("gradeScoreInput").value;
+  const passRaw = document.getElementById("gradePassScore").value;
+  if(raw===""){ el.innerHTML = ""; return; }
+  if(passRaw===""){ el.innerHTML = ""; return; } // ไม่ได้ตั้งเกณฑ์ผ่าน ไม่ต้องโชว์อะไร
+  const score = parseFloat(raw), pass = parseFloat(passRaw);
+  if(isNaN(score)){ el.innerHTML = ""; return; }
+  el.innerHTML = score >= pass
+    ? `<span class="grade-pass-ok">✅ ผ่านเกณฑ์ (ต้องการ ${pass} ขึ้นไป)</span>`
+    : `<span class="grade-pass-no">⚠️ ยังไม่ถึงเกณฑ์ผ่าน (ต้องการ ${pass} ขึ้นไป) — จะขึ้นสถานะ "ต้องสอบแก้"</span>`;
 }
 // บันทึกคะแนน — เขียนเข้า submissions (ระบบเดียวกับ Dashboard/กรอกคะแนน) + อัปเดต posts (checked + score) ให้โชว์บนการ์ดเร็ว
 async function saveGradePost(){
@@ -3090,7 +3268,7 @@ async function saveGradePost(){
   if(post){ post.checked = true; post.score = score; if(updatePayload.student_no) post.student_no = updatePayload.student_no; }
   closeModal("modalGradePost");
   showToast("บันทึกคะแนนแล้ว ✅");
-  await refreshPostsSilently();
+  if(!updatePostCardInPlace(postId)) await refreshPostsSilently();
 }
 // ยกเลิกการตรวจ (ล้าง checked + คะแนนบนโพสต์) — ไม่ลบคะแนนออกจากระบบเช็คงาน เผื่อครูให้คะแนนไว้ในหน้ากรอกคะแนนแยกต่างหาก
 async function uncheckFromGradeModal(){
@@ -3102,7 +3280,7 @@ async function uncheckFromGradeModal(){
   post.checked = false;
   closeModal("modalGradePost");
   showToast("ยกเลิกตรวจแล้ว");
-  await refreshPostsSilently();
+  if(!updatePostCardInPlace(postId)) await refreshPostsSilently();
 }
 
 async function togglePinPost(postId){
@@ -3269,11 +3447,11 @@ function drawChecklist(keyword){
       <p>พิมพ์เมื่อวันที่ ${new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' })}</p>
     </div>
     <div class="dash-cards no-print">
-      <div class="dash-card"><div class="num">${students.length}</div><div class="lbl">นักเรียนทั้งหมด</div></div>
-      <div class="dash-card"><div class="num">${assignments.length}</div><div class="lbl">งานทั้งหมด</div></div>
-      <div class="dash-card"><div class="num">${completeCount}</div><div class="lbl">ส่งครบแล้ว 🎉</div></div>
-      <div class="dash-card"><div class="num">${pendingCount}</div><div class="lbl">ยังค้างงาน</div></div>
-      ${hasAnyPassRule ? `<div class="dash-card dash-card-retake"><div class="num">${retakeStudentIds.size}</div><div class="lbl">ต้องสอบแก้ ⚠️</div></div>` : ""}
+      <div class="dash-card dash-card-total"><div class="dash-card-icon">🧑‍🎓</div><div class="num">${students.length}</div><div class="lbl">นักเรียนทั้งหมด</div></div>
+      <div class="dash-card dash-card-assign"><div class="dash-card-icon">📚</div><div class="num">${assignments.length}</div><div class="lbl">งานทั้งหมด</div></div>
+      <div class="dash-card dash-card-complete"><div class="dash-card-icon">🎉</div><div class="num">${completeCount}</div><div class="lbl">ส่งครบแล้ว</div></div>
+      <div class="dash-card dash-card-pending"><div class="dash-card-icon">⏳</div><div class="num">${pendingCount}</div><div class="lbl">ยังค้างงาน</div></div>
+      ${hasAnyPassRule ? `<div class="dash-card dash-card-retake"><div class="dash-card-icon">⚠️</div><div class="num">${retakeStudentIds.size}</div><div class="lbl">ต้องสอบแก้</div></div>` : ""}
     </div>
     <div class="checklist-toolbar no-print">
       <div class="search-box">
@@ -3322,9 +3500,11 @@ function drawChecklist(keyword){
       const belowPass = hasPassRule && scoreVal!==null && scoreVal < a.pass_score;
       if(belowPass){
         // ⚠️ ส่งแล้วแต่คะแนนไม่ถึงเกณฑ์ = ต้องสอบแก้
-        row += `<td><span class="mark-retake" title="ได้ ${scoreVal} คะแนน · เกณฑ์ผ่าน ${a.pass_score} — ต้องสอบแก้">⚠️<span class="retake-label">สอบแก้</span></span></td>`;
+        row += `<td><div class="status-cell" title="ต้องสอบแก้"><span class="status-dot dot-retake">⚠</span><span class="status-sublabel retake">สอบแก้</span></div></td>`;
       } else {
-        row += `<td>${done ? '<span class="mark-yes">✅</span>' : '<span class="mark-no">⬜</span>'}</td>`;
+        row += done
+          ? `<td><div class="status-cell"><span class="status-dot dot-yes">✓</span></div></td>`
+          : `<td><div class="status-cell"><span class="status-dot dot-no"></span></div></td>`;
       }
     });
     // คอลัมน์สถานะ: ต้องสอบแก้สำคัญที่สุด แสดงก่อน
