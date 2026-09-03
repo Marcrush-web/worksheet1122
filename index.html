@@ -326,6 +326,13 @@
   .grade-student-fixed{padding:11px 14px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; font-weight:600; font-size:.95rem;}
   /* ---------- ✅ Modal ให้คะแนน (ดีไซน์ใหม่) ---------- */
   .grade-modal{max-width:440px;}
+  /* ---------- 🔗 หน้าจับคู่คอลัมน์เก่ากับรายการงาน (bulk link) ---------- */
+  #linkColumnsList{display:flex; flex-direction:column; gap:10px; max-height:52vh; overflow-y:auto; margin-bottom:6px;}
+  .link-col-row{display:flex; flex-wrap:wrap; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px 14px;}
+  .link-col-title{flex:1 1 200px; font-weight:600; font-size:.9rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .link-col-row select{flex:1 1 220px; min-width:180px; padding:9px 12px; border-radius:10px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font-family:'Kanit',sans-serif; font-size:.85rem;}
+  .link-guess-note{flex:1 1 100%; font-size:.72rem; color:#B8860B; font-weight:600;}
+  [data-theme="dark"] .link-guess-note{color:#E5C158;}
   .grade-modal-head{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
   .grade-modal-icon{font-size:1.6rem;}
   .grade-modal-head h3{margin:0; font-size:1.25rem;}
@@ -1029,6 +1036,7 @@
     <div class="actions">
       <button class="btn btn-light" id="boardViewBtn" onclick="toggleBoardView()" style="display:none;">▤ แนวนอน</button>
       <button class="btn btn-light" id="sortByNoBtn" onclick="sortAllByStudentNo()" style="display:none;">🔢 เรียงตามเลขที่</button>
+      <button class="btn btn-light" id="linkColumnsBtn" onclick="openLinkColumnsTool()" style="display:none;">🔗 ผูกคอลัมน์กับเช็คงาน</button>
       <button class="btn btn-light" id="boardBgBtn" onclick="openBoardBgPicker()" style="display:none;">🎨 สีพื้นบอร์ด</button>
       <button class="btn btn-light" id="boardAdminBtn" onclick="navigate('admin')" style="display:none;">🔐 แผงควบคุม</button>
       <button class="btn btn-light" id="trashBtn" onclick="openTrash()" style="display:none;">🗑️ ถังขยะ</button>
@@ -1228,6 +1236,20 @@
 <!-- ============ MODAL: CONFIRM/PROMPT กลาง (แทน confirm/prompt ของเบราว์เซอร์) ============ -->
 <!-- ============ MODAL: VIEW POST (ดูผลงานเต็มแบบ Padlet) ============ -->
 <!-- ============ MODAL: ตรวจงาน + ให้คะแนนจากบอร์ด ============ -->
+<!-- ============ MODAL: จับคู่คอลัมน์เก่ากับรายการงาน (bulk link) ============ -->
+<div id="modalLinkColumns" class="modal-overlay">
+  <div class="modal modal-lg">
+    <button class="close-x" onclick="closeModal('modalLinkColumns')">✕</button>
+    <h3>🔗 ผูกคอลัมน์กับรายการเช็คงาน</h3>
+    <p class="hint" style="margin-bottom:16px;">ระบบเดาคู่ที่น่าจะใช่จากชื่อให้แล้ว ตรวจสอบ/แก้ไขก่อนกดยืนยัน — คอลัมน์ที่ผูกแล้วจะครูตรวจงาน+ให้คะแนนจากบอร์ดได้เลย คะแนนไปโผล่ใน Dashboard/เช็คงานทันที</p>
+    <div id="linkColumnsList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalLinkColumns')">ปิด</button>
+      <button class="btn btn-primary" onclick="saveLinkColumns()">✅ ยืนยันการผูกทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
 <div id="modalGradePost" class="modal-overlay">
   <div class="modal grade-modal">
     <button class="close-x" onclick="closeModal('modalGradePost')">✕</button>
@@ -2053,6 +2075,8 @@ async function openClassroom(id){
   if(boardBgBtn) boardBgBtn.style.display = state.isAdmin ? "inline-block" : "none";
   const sortByNoBtn = document.getElementById("sortByNoBtn");
   if(sortByNoBtn) sortByNoBtn.style.display = state.isAdmin ? "inline-block" : "none";
+  const linkColumnsBtn = document.getElementById("linkColumnsBtn");
+  if(linkColumnsBtn) linkColumnsBtn.style.display = state.isAdmin ? "inline-block" : "none";
   const boardAdminBtn = document.getElementById("boardAdminBtn");
   if(boardAdminBtn) boardAdminBtn.style.display = state.isAdmin ? "inline-block" : "none";
   document.getElementById("tabBoardBtn").classList.add("active");
@@ -2546,6 +2570,96 @@ async function quickCreateAssignmentFromSection(){
   state.roomAssignments.push(data);
   fillSectionAssignmentDropdown(data.id); // เติม dropdown ใหม่ + เลือกอันที่เพิ่งสร้างให้อัตโนมัติ
   showToast(`สร้าง "${data.title}" แล้ว และผูกให้อัตโนมัติ ✅`);
+}
+
+/* ---------------------------- 🔗 ผูกคอลัมน์เก่ากับรายการงานทีเดียวหลายอัน (bulk link) ---------------------------- */
+// ตัดคำ/สัญลักษณ์ทั่วไปออก แล้วแตกเป็นชุดคำ เพื่อเทียบความคล้ายแบบไม่สนใจลำดับคำ
+function tokenizeForMatch(text){
+  return (text||"")
+    .toLowerCase()
+    .replace(/[():：·\-_/,.]/g, " ")
+    .split(/\s+/)
+    .map(w=>w.trim())
+    .filter(w=>w.length>0 && !["งาน","ชิ้น","เรื่อง","ที่"].includes(w)); // ตัดคำทั่วไปที่ไม่ช่วยแยกแยะ (เจอในทั้ง 2 ฝั่งบ่อย)
+}
+// คะแนนความคล้าย 0-1 ระหว่างชื่อคอลัมน์กับชื่อรายการงาน (Jaccard บนชุดคำ — ไม่สนลำดับคำ)
+function titleSimilarity(a, b){
+  const setA = new Set(tokenizeForMatch(a));
+  const setB = new Set(tokenizeForMatch(b));
+  if(setA.size===0 || setB.size===0) return 0;
+  let overlap = 0;
+  setA.forEach(w=>{ if(setB.has(w)) overlap++; });
+  const union = new Set([...setA, ...setB]).size;
+  return overlap / union;
+}
+// เปิดเครื่องมือจับคู่ — เดาคู่ที่น่าจะใช่ให้ทุกคอลัมน์ที่ยังไม่ได้ผูก แสดงให้ตรวจสอบก่อนยืนยัน
+function openLinkColumnsTool(){
+  if(!state.isAdmin) return;
+  const sections = state.sections || [];
+  const assignments = state.roomAssignments || [];
+  if(sections.length===0){ showToast("ห้องนี้ยังไม่มีคอลัมน์"); return; }
+  if(assignments.length===0){ showToast("ห้องนี้ยังไม่มีรายการงานในระบบเช็คงาน — ไปสร้างที่แผงควบคุมครูก่อน หรือสร้างทางลัดตอนแก้ไขคอลัมน์ได้เลย"); return; }
+
+  const rows = sections.map(sec=>{
+    let best = null, bestScore = 0;
+    assignments.forEach(a=>{
+      const score = titleSimilarity(sec.title, a.title);
+      if(score > bestScore){ bestScore = score; best = a; }
+    });
+    // เดาให้เฉพาะตอนคล้ายพอสมควร (กันเดามั่วตอนชื่อไม่เกี่ยวกันเลย)
+    const suggested = bestScore >= 0.25 ? best : null;
+    return { sec, suggested, suggestedScore: bestScore };
+  });
+
+  const optsHtml = (currentId)=>{
+    let opts = '<option value="">— ไม่ผูก —</option>';
+    opts += assignments.map(a=>`<option value="${a.id}" ${a.id===currentId?"selected":""}>${escapeHtml(a.title)} (เต็ม ${a.max_score ?? 10})</option>`).join("");
+    return opts;
+  };
+
+  const listEl = document.getElementById("linkColumnsList");
+  listEl.innerHTML = rows.map(({sec, suggested})=>{
+    const currentlyLinked = sec.assignment_id ? assignments.find(a=>a.id===sec.assignment_id) : null;
+    const selectedId = currentlyLinked ? currentlyLinked.id : (suggested ? suggested.id : "");
+    const guessNote = (!currentlyLinked && suggested) ? `<span class="link-guess-note">💡 ระบบเดาคู่นี้ให้ — ตรวจสอบก่อนนะ</span>` : "";
+    return `
+      <div class="link-col-row" data-section-id="${sec.id}">
+        <div class="link-col-title">📋 ${escapeHtml(sec.title)}</div>
+        <select class="link-col-select">${optsHtml(selectedId)}</select>
+        ${guessNote}
+      </div>`;
+  }).join("");
+
+  openModal("modalLinkColumns");
+}
+// บันทึกการจับคู่ทั้งหมดพร้อมกัน — อัปเดตเฉพาะแถวที่ค่าเปลี่ยนไปจากเดิมเท่านั้น (ประหยัด ไม่ยิง query เกินจำเป็น)
+async function saveLinkColumns(){
+  const rows = document.querySelectorAll("#linkColumnsList .link-col-row");
+  const updates = [];
+  rows.forEach(row=>{
+    const sectionId = row.dataset.sectionId;
+    const newVal = row.querySelector(".link-col-select").value || null;
+    const sec = state.sections.find(s=>s.id===sectionId);
+    if(sec && sec.assignment_id !== newVal){
+      updates.push({ sectionId, newVal });
+    }
+  });
+  if(updates.length===0){ showToast("ไม่มีอะไรเปลี่ยนแปลง"); closeModal("modalLinkColumns"); return; }
+
+  const results = await Promise.all(updates.map(u=>
+    supabaseClient.from("board_sections").update({ assignment_id: u.newVal }).eq("id", u.sectionId)
+  ));
+  const failed = results.filter(r=>r.error);
+  if(failed.length>0){ showErr(`ผูกไม่สำเร็จ ${failed.length} คอลัมน์`, failed[0].error); }
+
+  // อัปเดตในหน่วยความจำด้วย ไม่ต้องรอโหลดใหม่
+  updates.forEach(u=>{
+    const sec = state.sections.find(s=>s.id===u.sectionId);
+    if(sec) sec.assignment_id = u.newVal;
+  });
+  closeModal("modalLinkColumns");
+  showToast(`ผูกสำเร็จ ${updates.length - failed.length} คอลัมน์ ✅`);
+  await refreshPostsSilently();
 }
 // บันทึก — ใช้ปุ่มเดียวทั้งเพิ่มและแก้ไข (ดูจาก editSectionId)
 async function saveSection(){
