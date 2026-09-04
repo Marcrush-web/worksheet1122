@@ -309,10 +309,10 @@
   .lightbox-doc-open{position:absolute; bottom:16px; left:50%; transform:translateX(-50%); box-shadow:0 6px 20px rgba(0,0,0,.45); white-space:nowrap;}
   .lightbox-doc-fallback{position:absolute; inset:0;}
   /* ---------- 🖼️ Lightbox ดูผลงานเต็ม (Padlet-style) ---------- */
-  .lightbox-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:200; align-items:center; justify-content:center; padding:20px;}
+  .lightbox-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:420; align-items:center; justify-content:center; padding:20px;}
   .lightbox-overlay.active{display:flex; animation:fadeIn .2s;}
   @keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
-  .lightbox-close{position:fixed; top:18px; left:18px; z-index:210; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:#fff; font-size:1.2rem; cursor:pointer; transition:.15s;}
+  .lightbox-close{position:fixed; top:18px; left:18px; z-index:430; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:#fff; font-size:1.2rem; cursor:pointer; transition:.15s;}
   .lightbox-close:hover{background:rgba(255,255,255,.3);}
   .lightbox-body{display:flex; width:100%; max-width:1100px; max-height:90vh; background:var(--card); border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5);}
   .lightbox-media{flex:1 1 60%; background:#1a1a1a; display:flex; align-items:center; justify-content:center; min-height:300px; overflow:auto;}
@@ -369,6 +369,16 @@
   .grade-score-input-wrap input{flex:1; min-width:0; border:none; background:transparent; font-size:1.7rem; font-weight:700; font-family:'Kanit',sans-serif; color:var(--text); padding:0; text-align:center;}
   .grade-score-input-wrap input:focus{outline:none;}
   .grade-score-max{font-size:1.1rem; font-weight:600; color:var(--muted); flex:0 0 auto;}
+  /* 💯 ชิปเลือกคะแนนแบบคลิกเดียว (ไม่ต้องกดเพิ่มทีละแต้ม) */
+  .grade-quick-hint{font-size:.78rem; color:var(--muted); margin:2px 0 10px;}
+  .grade-quick-scores{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  .grade-quick-scores:empty{display:none;}
+  .quick-score-chip{min-width:46px; min-height:46px; padding:8px 12px; border-radius:13px; border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-family:'Kanit',sans-serif; font-weight:700; font-size:1.05rem; cursor:pointer; transition:.12s transform,.12s border-color,.12s background,.12s color;}
+  .quick-score-chip:hover{border-color:var(--brand); color:var(--brand-dark); transform:translateY(-1px);}
+  .quick-score-chip:active{transform:scale(.94);}
+  .quick-score-chip.active{background:linear-gradient(135deg,var(--brand),var(--brand-dark)); border-color:transparent; color:#fff; box-shadow:0 3px 10px rgba(253,184,51,.4);}
+  [data-theme="dark"] .quick-score-chip:hover{color:var(--brand);}
+  [data-theme="dark"] .quick-score-chip.active{background:linear-gradient(135deg,var(--purple),var(--brand-dark)); color:#fff; box-shadow:0 3px 12px rgba(123,97,255,.45);}
   .grade-pass-indicator{margin-top:9px; font-size:.8rem; font-weight:600; min-height:1.2em;}
   .grade-pass-ok{color:#12A150;}
   .grade-pass-no{color:#E5484D;}
@@ -486,7 +496,9 @@
   .draggable-card .pin-badge{left:38px;} /* เลื่อนป้ายปักหมุดไปขวาของไอคอนจับลาก กันทับกัน */
   .fab{position:fixed; bottom:24px; right:24px; background:var(--brand); color:#fff; border:none; border-radius:999px; padding:16px 22px; font-size:1rem; font-weight:700; box-shadow:0 8px 24px rgba(253,184,51,.5); cursor:pointer; z-index:40;}
   /* ---------- Modal ---------- */
-  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end; justify-content:center;}
+  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:450; align-items:flex-end; justify-content:center;}
+  /* modal ให้คะแนน ต้องลอยอยู่เหนือ lightbox/การ์ดขยายเสมอ กันกดไม่ได้ (เคยทับกัน) */
+  #modalGradePost{z-index:460;}
   .modal-overlay.active{display:flex; animation:overlayFadeIn .18s ease;}
   @keyframes overlayFadeIn{from{background:rgba(0,0,0,0);} to{background:rgba(0,0,0,.45);}}
   .modal{background:var(--card); color:var(--text); width:100%; max-width:520px; border-radius:24px 24px 0 0; padding:24px 20px 30px; max-height:90vh; overflow-y:auto; animation:slideUp .25s ease;}
@@ -785,7 +797,7 @@
   .present-slide h2{font-size:1.8rem; margin-bottom:8px;}
   .present-slide p{color:#c9c3d8; max-width:600px; font-size:1.05rem;}
   .present-slide .tagpill{margin-bottom:10px;}
-  .toast{position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#2D2A32; color:#fff; padding:12px 20px; border-radius:999px; font-size:.85rem; z-index:300; opacity:0; transition:.3s;}
+  .toast{position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#2D2A32; color:#fff; padding:12px 20px; border-radius:999px; font-size:.85rem; z-index:9999; opacity:0; transition:.3s;}
   .toast.show{opacity:1;}
   .loading{text-align:center; padding:40px; color:var(--muted);}
 
@@ -1304,8 +1316,10 @@
 
     <div class="field">
       <label id="gradeScoreLabel">คะแนนที่ได้</label>
+      <p class="grade-quick-hint" id="gradeQuickHint">👇 คลิกเลือกคะแนนได้เลย หรือพิมพ์เองในช่องด้านล่าง</p>
+      <div class="grade-quick-scores" id="gradeQuickScores"></div>
       <div class="grade-score-input-wrap">
-        <input type="number" id="gradeScoreInput" inputmode="decimal" placeholder="0" min="0" oninput="onGradeScoreInput()">
+        <input type="number" id="gradeScoreInput" inputmode="decimal" placeholder="0" min="0" step="0.5" oninput="onGradeScoreInput()">
         <span class="grade-score-max" id="gradeScoreMaxLabel">/ 10</span>
       </div>
       <div class="grade-pass-indicator" id="gradePassIndicator"></div>
@@ -3373,18 +3387,22 @@ function handleCheckClick(postId){
 async function openGradePost(postId, assignment){
   const post = state.posts.find(p=>p.id===postId);
   if(!post) return;
+  // ปิดการ์ดขยาย (lightbox) ก่อน ถ้าเปิดค้างอยู่ — กัน modal ให้คะแนนโดนบัง/ทับกันจนกดไม่ได้
+  closeModal2("modalViewPost");
+  const maxScore = assignment.max_score ?? 10;
   document.getElementById("gradePostId").value = postId;
   document.getElementById("gradeAssignmentId").value = assignment.id;
-  document.getElementById("gradeMaxScore").value = assignment.max_score ?? 10;
+  document.getElementById("gradeMaxScore").value = maxScore;
   document.getElementById("gradePassScore").value = (assignment.pass_score ?? "");
   document.getElementById("gradeAssignmentHint").innerHTML =
-    `<span class="grade-pin">📌</span><div><b>${escapeHtml(assignment.title)}</b><span class="grade-assignment-sub">เต็ม ${assignment.max_score ?? 10} คะแนน${(assignment.pass_score!==null && assignment.pass_score!==undefined) ? ` · เกณฑ์ผ่าน ${assignment.pass_score}` : ""}</span></div>`;
+    `<span class="grade-pin">📌</span><div><b>${escapeHtml(assignment.title)}</b><span class="grade-assignment-sub">เต็ม ${maxScore} คะแนน${(assignment.pass_score!==null && assignment.pass_score!==undefined) ? ` · เกณฑ์ผ่าน ${assignment.pass_score}` : ""}</span></div>`;
   document.getElementById("gradeScoreLabel").textContent = "คะแนนที่ได้";
-  document.getElementById("gradeScoreMaxLabel").textContent = `/ ${assignment.max_score ?? 10}`;
-  document.getElementById("gradeScoreInput").max = assignment.max_score ?? 10;
+  document.getElementById("gradeScoreMaxLabel").textContent = `/ ${maxScore}`;
+  document.getElementById("gradeScoreInput").max = maxScore;
   document.getElementById("gradeScoreInput").value = (post.score!==null && post.score!==undefined) ? post.score : "";
+  renderQuickScores(maxScore, document.getElementById("gradeScoreInput").value); // สร้างชิปเลือกคะแนน 0..เต็ม
   document.getElementById("gradeUncheckBtn").style.display = post.checked ? "inline-block" : "none";
-  onGradeScoreInput(); // อัปเดตตัวชี้ผ่าน/ไม่ผ่านตามคะแนนเดิม (ถ้ามี)
+  onGradeScoreInput(); // อัปเดตตัวชี้ผ่าน/ไม่ผ่าน + ไฮไลต์ชิปตามคะแนนเดิม (ถ้ามี)
 
   const knownWrap = document.getElementById("gradeStudentKnownWrap");
   const pickWrap = document.getElementById("gradeStudentPickWrap");
@@ -3419,6 +3437,7 @@ async function openGradePost(postId, assignment){
       .eq("student_id", studentId).eq("assignment_id", assignment.id).maybeSingle();
     if(data && data.score!==null && data.score!==undefined){
       document.getElementById("gradeScoreInput").value = data.score;
+      onGradeScoreInput(); // ไฮไลต์ชิป + อัปเดตตัวชี้ผ่าน ตามคะแนนเดิมที่ดึงมา
     }
   }
 }
@@ -3434,8 +3453,9 @@ async function onGradeStudentPick(){
 }
 // อัปเดตตัวชี้ "ผ่าน/ไม่ผ่าน" แบบสดขณะพิมพ์คะแนน (ให้ครูเห็นผลทันทีก่อนกดบันทึก)
 function onGradeScoreInput(){
-  const el = document.getElementById("gradePassIndicator");
   const raw = document.getElementById("gradeScoreInput").value;
+  highlightQuickScore(raw); // ซิงก์ไฮไลต์ชิปกับค่าที่พิมพ์
+  const el = document.getElementById("gradePassIndicator");
   const passRaw = document.getElementById("gradePassScore").value;
   if(raw===""){ el.innerHTML = ""; return; }
   if(passRaw===""){ el.innerHTML = ""; return; } // ไม่ได้ตั้งเกณฑ์ผ่าน ไม่ต้องโชว์อะไร
@@ -3444,6 +3464,40 @@ function onGradeScoreInput(){
   el.innerHTML = score >= pass
     ? `<span class="grade-pass-ok">✅ ผ่านเกณฑ์ (ต้องการ ${pass} ขึ้นไป)</span>`
     : `<span class="grade-pass-no">⚠️ ยังไม่ถึงเกณฑ์ผ่าน (ต้องการ ${pass} ขึ้นไป) — จะขึ้นสถานะ "ต้องสอบแก้"</span>`;
+}
+// สร้างชิปเลือกคะแนน 0..คะแนนเต็ม (คลิกครั้งเดียวได้เลย) — คะแนนเต็มไม่เกิน 20 ถึงจะโชว์ชิป (มากกว่านั้นให้พิมพ์เอง)
+function renderQuickScores(maxScore, current){
+  const wrap = document.getElementById("gradeQuickScores");
+  const hint = document.getElementById("gradeQuickHint");
+  if(!wrap) return;
+  const m = Math.floor(Number(maxScore));
+  if(!(m > 0) || m > 20){
+    wrap.innerHTML = "";
+    if(hint) hint.style.display = "none"; // คะแนนเต็มเยอะเกิน แสดงชิปไม่ไหว -> ให้พิมพ์เอง
+    return;
+  }
+  if(hint) hint.style.display = "block";
+  let html = "";
+  for(let i = 0; i <= m; i++){
+    html += `<button type="button" class="quick-score-chip" data-val="${i}" onclick="pickQuickScore(${i})">${i}</button>`;
+  }
+  wrap.innerHTML = html;
+  highlightQuickScore(current);
+}
+// ไฮไลต์ชิปที่ตรงกับคะแนนปัจจุบัน
+function highlightQuickScore(val){
+  const wrap = document.getElementById("gradeQuickScores");
+  if(!wrap) return;
+  const v = (val==="" || val===null || val===undefined) ? null : parseFloat(val);
+  wrap.querySelectorAll(".quick-score-chip").forEach(chip=>{
+    chip.classList.toggle("active", v!==null && parseFloat(chip.dataset.val) === v);
+  });
+}
+// คลิกชิป -> เติมคะแนนลงช่อง แล้วอัปเดตทุกอย่าง
+function pickQuickScore(val){
+  const inp = document.getElementById("gradeScoreInput");
+  inp.value = val;
+  onGradeScoreInput();
 }
 // บันทึกคะแนน — เขียนเข้า submissions (ระบบเดียวกับ Dashboard/กรอกคะแนน) + อัปเดต posts (checked + score) ให้โชว์บนการ์ดเร็ว
 async function saveGradePost(){
