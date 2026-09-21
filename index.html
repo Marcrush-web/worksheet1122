@@ -50,38 +50,17 @@
   /* ---------- Top bar ---------- */
   .topbar{
     display:flex; align-items:center; justify-content:space-between; padding:14px 20px;
-    color:var(--text); position:sticky; top:0; z-index:50;
-    /* 🧊 กระจกฝ้าโปร่งแสง (Glassmorphism) */
-    background:rgba(255,255,255,.62);
-    -webkit-backdrop-filter:blur(18px) saturate(160%);
-    backdrop-filter:blur(18px) saturate(160%);
-    border-bottom:1px solid rgba(255,255,255,.45);
-    box-shadow:0 4px 24px rgba(43,47,56,.08);
+    background:var(--card); color:var(--text); position:sticky; top:0; z-index:50;
+    border-bottom:1px solid var(--border); box-shadow:0 2px 12px rgba(42,45,69,.05);
+    backdrop-filter:blur(8px);
   }
-  [data-theme="dark"] .topbar{
-    background:rgba(21,27,43,.55);
-    border-bottom:1px solid rgba(255,255,255,.08);
-    box-shadow:0 6px 28px rgba(0,0,0,.45);
-  }
-  /* ปุ่มในแถบเครื่องมือ ให้เป็นกระจกใสด้วย แต่คงความคมชัดของตัวหนังสือทั้ง 2 โหมด */
-  .topbar .btn-light{
-    background:rgba(255,255,255,.55); color:var(--text);
-    border:1px solid rgba(43,47,56,.08);
-    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-  }
-  .topbar .btn-light:hover{ background:rgba(255,255,255,.88); }
-  [data-theme="dark"] .topbar .btn-light{
-    background:rgba(255,255,255,.07); color:var(--text);
-    border:1px solid rgba(255,255,255,.14);
-  }
-  [data-theme="dark"] .topbar .btn-light:hover{ background:rgba(255,255,255,.16); }
   .topbar h1{font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:8px; color:var(--text);}
   .board-title-compact{font-size:.95rem; font-weight:600; color:var(--muted) !important;}
   .topbar .actions{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;}
   @media(max-width:600px){
     .topbar{flex-wrap:wrap; gap:8px; padding:12px 14px;}
     .topbar h1{font-size:1rem;}
-    .topbar .actions .btn{padding:10px 14px; font-size:.82rem; min-height:42px; display:inline-flex; align-items:center;}
+    .topbar .actions .btn{padding:8px 12px; font-size:.82rem;}
   }
   .btn{border:none; border-radius:999px; padding:10px 18px; font-family:'Kanit',sans-serif; font-weight:600; cursor:pointer; font-size:.9rem; transition:.18s transform, .18s box-shadow;}
   .btn:hover{transform:translateY(-1px);}
@@ -309,10 +288,10 @@
   .lightbox-doc-open{position:absolute; bottom:16px; left:50%; transform:translateX(-50%); box-shadow:0 6px 20px rgba(0,0,0,.45); white-space:nowrap;}
   .lightbox-doc-fallback{position:absolute; inset:0;}
   /* ---------- 🖼️ Lightbox ดูผลงานเต็ม (Padlet-style) ---------- */
-  .lightbox-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:420; align-items:center; justify-content:center; padding:20px;}
+  .lightbox-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:200; align-items:center; justify-content:center; padding:20px;}
   .lightbox-overlay.active{display:flex; animation:fadeIn .2s;}
   @keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
-  .lightbox-close{position:fixed; top:18px; left:18px; z-index:430; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:#fff; font-size:1.2rem; cursor:pointer; transition:.15s;}
+  .lightbox-close{position:fixed; top:18px; left:18px; z-index:210; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:#fff; font-size:1.2rem; cursor:pointer; transition:.15s;}
   .lightbox-close:hover{background:rgba(255,255,255,.3);}
   .lightbox-body{display:flex; width:100%; max-width:1100px; max-height:90vh; background:var(--card); border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5);}
   .lightbox-media{flex:1 1 60%; background:#1a1a1a; display:flex; align-items:center; justify-content:center; min-height:300px; overflow:auto;}
@@ -369,16 +348,6 @@
   .grade-score-input-wrap input{flex:1; min-width:0; border:none; background:transparent; font-size:1.7rem; font-weight:700; font-family:'Kanit',sans-serif; color:var(--text); padding:0; text-align:center;}
   .grade-score-input-wrap input:focus{outline:none;}
   .grade-score-max{font-size:1.1rem; font-weight:600; color:var(--muted); flex:0 0 auto;}
-  /* 💯 ชิปเลือกคะแนนแบบคลิกเดียว (ไม่ต้องกดเพิ่มทีละแต้ม) */
-  .grade-quick-hint{font-size:.78rem; color:var(--muted); margin:2px 0 10px;}
-  .grade-quick-scores{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
-  .grade-quick-scores:empty{display:none;}
-  .quick-score-chip{min-width:46px; min-height:46px; padding:8px 12px; border-radius:13px; border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-family:'Kanit',sans-serif; font-weight:700; font-size:1.05rem; cursor:pointer; transition:.12s transform,.12s border-color,.12s background,.12s color;}
-  .quick-score-chip:hover{border-color:var(--brand); color:var(--brand-dark); transform:translateY(-1px);}
-  .quick-score-chip:active{transform:scale(.94);}
-  .quick-score-chip.active{background:linear-gradient(135deg,var(--brand),var(--brand-dark)); border-color:transparent; color:#fff; box-shadow:0 3px 10px rgba(253,184,51,.4);}
-  [data-theme="dark"] .quick-score-chip:hover{color:var(--brand);}
-  [data-theme="dark"] .quick-score-chip.active{background:linear-gradient(135deg,var(--purple),var(--brand-dark)); color:#fff; box-shadow:0 3px 12px rgba(123,97,255,.45);}
   .grade-pass-indicator{margin-top:9px; font-size:.8rem; font-weight:600; min-height:1.2em;}
   .grade-pass-ok{color:#12A150;}
   .grade-pass-no{color:#E5484D;}
@@ -496,9 +465,7 @@
   .draggable-card .pin-badge{left:38px;} /* เลื่อนป้ายปักหมุดไปขวาของไอคอนจับลาก กันทับกัน */
   .fab{position:fixed; bottom:24px; right:24px; background:var(--brand); color:#fff; border:none; border-radius:999px; padding:16px 22px; font-size:1rem; font-weight:700; box-shadow:0 8px 24px rgba(253,184,51,.5); cursor:pointer; z-index:40;}
   /* ---------- Modal ---------- */
-  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:450; align-items:flex-end; justify-content:center;}
-  /* modal ให้คะแนน ต้องลอยอยู่เหนือ lightbox/การ์ดขยายเสมอ กันกดไม่ได้ (เคยทับกัน) */
-  #modalGradePost{z-index:460;}
+  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end; justify-content:center;}
   .modal-overlay.active{display:flex; animation:overlayFadeIn .18s ease;}
   @keyframes overlayFadeIn{from{background:rgba(0,0,0,0);} to{background:rgba(0,0,0,.45);}}
   .modal{background:var(--card); color:var(--text); width:100%; max-width:520px; border-radius:24px 24px 0 0; padding:24px 20px 30px; max-height:90vh; overflow-y:auto; animation:slideUp .25s ease;}
@@ -547,6 +514,16 @@
   .field textarea{resize:vertical; min-height:70px;}
   .tag-select{display:flex; gap:8px; flex-wrap:wrap;}
   .tag-select .chip{border:1.5px solid var(--border);}
+  /* ---------- แถวชื่อนักเรียนในฟอร์มโพสต์ (เดี่ยว/คู่/กลุ่ม) ---------- */
+  .student-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .student-row .student-no-select{flex:0 0 40%; min-width:0;}
+  .student-row .student-name-input{flex:1 1 auto; min-width:0;}
+  .remove-row-btn{
+    flex:0 0 34px; width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:.9rem;
+    background:rgba(224,72,72,.1); color:#E04848; border:1px solid rgba(224,72,72,.3);
+  }
+  .remove-row-btn:hover{background:rgba(224,72,72,.18);}
+  #addStudentRowBtn{margin-top:2px; padding:8px 16px; font-size:.85rem;}
   .modal-actions{display:flex; gap:10px; margin-top:20px;}
   .modal-actions .btn{flex:1;}
   .close-x{position:absolute; top:16px; right:16px; background:var(--surface); color:var(--text); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1rem;}
@@ -586,11 +563,7 @@
   .res-thumb{width:44px; height:44px; border-radius:10px; object-fit:cover; flex:0 0 auto; background:var(--surface);}
   .res-thumb-empty{display:flex; align-items:center; justify-content:center; font-size:1.2rem;}
   /* ---------- Tabs (classroom & admin room) ---------- */
-  .tab-switch{position:sticky; top:calc(var(--topbar-h,60px) + 8px); z-index:30; display:flex; width:max-content; max-width:calc(100% - 32px); gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; background:var(--surface); padding:5px; margin:14px 16px; border-radius:999px; box-shadow:inset 0 0 0 1px var(--border), var(--shadow); font-size:.95rem; scrollbar-width:none;}
-  .tab-switch::-webkit-scrollbar{display:none;}
-  /* 💊 แคปซูลเลื่อน (Segmented Pill) — JS: syncTabPills() คำนวณตำแหน่ง/ความกว้างให้ */
-  .tab-pill{position:absolute; top:5px; bottom:5px; left:0; width:0; z-index:0; pointer-events:none; background:linear-gradient(135deg,var(--brand),var(--brand-dark)); border-radius:999px; box-shadow:0 3px 10px rgba(253,184,51,.40); transition:transform .28s cubic-bezier(.4,0,.2,1), width .28s cubic-bezier(.4,0,.2,1), opacity .2s ease;}
-  [data-theme="dark"] .tab-pill{background:linear-gradient(135deg,var(--purple),var(--brand-dark)); box-shadow:0 3px 12px rgba(123,97,255,.45);}
+  .tab-switch{display:flex; align-items:stretch; gap:0; overflow-x:auto; background:var(--card); border-bottom:1px solid var(--border); font-size:.95rem;}
   /* ---------- Breadcrumb นำทาง (แยกจากแท็บเนื้อหาชัดเจน) ---------- */
   .board-breadcrumb{
     display:flex; align-items:center; gap:8px; padding:9px 20px;
@@ -627,10 +600,11 @@
     writing-mode:vertical-lr; direction:rtl; width:6px; height:100px; cursor:pointer; accent-color:#FDB833;
   }
   @media(max-width:600px){ .board-cover{height:90px;} .board-cover-title h2{font-size:1.05rem;} .board-cover-title span{font-size:1.3rem;} }
-  .tab-btn{position:relative; z-index:1; flex:0 0 auto; text-align:center; border:none; background:none; color:var(--muted); padding:10px 22px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; cursor:pointer; white-space:nowrap; border-radius:999px; transition:color .25s ease;}
-  .tab-btn:hover{color:var(--text);}
-  .tab-btn.active{color:#fff; font-weight:700; text-shadow:0 1px 2px rgba(0,0,0,.18);}
-  [data-theme="dark"] .tab-btn.active{color:#fff;}
+  .tab-btn{flex:1 1 0; min-width:110px; text-align:center; border:none; background:none; color:var(--muted); padding:15px 12px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.92rem; cursor:pointer; white-space:nowrap; position:relative; transition:.15s background, .15s color;}
+  .tab-btn:hover{background:var(--surface); color:var(--text);}
+  .tab-btn.active{color:var(--brand-dark); font-weight:700; position:relative; background:rgba(253,184,51,.08);}
+  .tab-btn.active::before{content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--brand); border-radius:999px 999px 0 0;}
+  [data-theme="dark"] .tab-btn.active{background:rgba(123,97,255,.15);}
   .classroom-pane, .ar-pane{display:none;}
   .classroom-pane.active, .ar-pane.active{display:block;}
   /* ---------- Site-wide nav (เมนูหลักของเว็บ) ---------- */
@@ -644,25 +618,20 @@
     body{padding-bottom:78px;} /* กันเนื้อหาโดนแถบเมนูล่างบัง */
     /* เมนูทุกชุด (หน้าหลัก/สื่อการสอน + แท็บในห้องเรียน + แท็บ Admin) กลายเป็นแถบล่างเหมือนกันหมด */
     .site-nav, .tab-switch{
-      position:fixed; bottom:0; left:0; right:0; top:auto; z-index:400; max-width:none;
-      width:auto; margin:0; border-radius:0;
+      position:fixed; bottom:0; left:0; right:0; z-index:400; max-width:none;
       justify-content:center; gap:8px; border-bottom:none; border-top:1px solid var(--border);
       padding:10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
       background:var(--card);
       box-shadow:0 -6px 20px rgba(0,0,0,.15);
       overflow-x:auto; -webkit-overflow-scrolling:touch;
     }
-    /* บนมือถือใช้ปุ่ม-แคปซูลรายปุ่ม (ไม่ใช้ pill เลื่อน) — ซ่อน pill ไว้ */
-    .tab-pill{display:none;}
     .nav-btn, .tab-btn{
       flex:0 0 auto; background:var(--surface); color:var(--muted);
-      padding:11px 18px; border-radius:999px; font-size:.82rem; border-bottom:none;
-      min-height:44px; display:inline-flex; align-items:center; justify-content:center;
-      text-shadow:none;
+      padding:9px 16px; border-radius:999px; font-size:.8rem; border-bottom:none;
     }
     /* ตัดเครื่องหมาย / ออกบนมือถือ ใช้ Pill แทน */
     .nav-btn:not(:last-child)::after, .tab-btn:not(:last-child)::after{content:none;}
-    .nav-btn.active, .tab-btn.active{background:var(--purple); color:#fff; font-weight:600; text-shadow:none;}
+    .nav-btn.active, .tab-btn.active{background:var(--purple); color:#fff; font-weight:600;}
     /* ยกปุ่มลอย + ปุ่มธีม ขึ้นให้พ้นแถบเมนูล่าง */
     .fab{bottom:88px;}
     .theme-toggle{bottom:88px;}
@@ -797,7 +766,7 @@
   .present-slide h2{font-size:1.8rem; margin-bottom:8px;}
   .present-slide p{color:#c9c3d8; max-width:600px; font-size:1.05rem;}
   .present-slide .tagpill{margin-bottom:10px;}
-  .toast{position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#2D2A32; color:#fff; padding:12px 20px; border-radius:999px; font-size:.85rem; z-index:9999; opacity:0; transition:.3s;}
+  .toast{position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#2D2A32; color:#fff; padding:12px 20px; border-radius:999px; font-size:.85rem; z-index:300; opacity:0; transition:.3s;}
   .toast.show{opacity:1;}
   .loading{text-align:center; padding:40px; color:var(--muted);}
 
@@ -1118,18 +1087,13 @@
     <button class="close-x" onclick="closeModal('modalPost')">✕</button>
     <h3 id="modalPostTitle">✨ โพสต์ผลงานของฉัน</h3>
     <div class="field">
-      <label>เลือกเลขที่ของฉัน (แนะนำให้เลือก เพื่อให้ครูตรวจง่าย)</label>
-      <select id="inputStudentNo" onchange="onPickStudentNo()">
-        <option value="">— ยังไม่เลือก —</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>ชื่อ-นามสกุลนักเรียน *</label>
-      <input type="text" id="inputStudentName" placeholder="เช่น เด็กหญิงใจดี ตั้งใจเรียน">
-    </div>
-    <div class="field">
       <label>หมวดหมู่ผลงาน</label>
       <div class="tag-select" id="tagSelect"></div>
+    </div>
+    <div class="field">
+      <label id="studentFieldLabel">เลือกเลขที่ + ชื่อ-นามสกุลนักเรียน *</label>
+      <div id="studentRowsWrap"></div>
+      <button type="button" class="btn btn-light" id="addStudentRowBtn" onclick="addStudentRow()" style="display:none;">➕ เพิ่มสมาชิก</button>
     </div>
     <div class="field">
       <label>คำอธิบายผลงาน *</label>
@@ -1316,10 +1280,8 @@
 
     <div class="field">
       <label id="gradeScoreLabel">คะแนนที่ได้</label>
-      <p class="grade-quick-hint" id="gradeQuickHint">👇 คลิกเลือกคะแนนได้เลย หรือพิมพ์เองในช่องด้านล่าง</p>
-      <div class="grade-quick-scores" id="gradeQuickScores"></div>
       <div class="grade-score-input-wrap">
-        <input type="number" id="gradeScoreInput" inputmode="decimal" placeholder="0" min="0" step="0.5" oninput="onGradeScoreInput()">
+        <input type="number" id="gradeScoreInput" inputmode="decimal" placeholder="0" min="0" oninput="onGradeScoreInput()">
         <span class="grade-score-max" id="gradeScoreMaxLabel">/ 10</span>
       </div>
       <div class="grade-pass-indicator" id="gradePassIndicator"></div>
@@ -1393,6 +1355,7 @@
       <input type="text" id="sectionTagInput" list="sectionTagOptions" placeholder="เช่น งานเดี่ยว, งานกลุ่ม, โครงงาน">
       <datalist id="sectionTagOptions">
         <option value="งานเดี่ยว"></option>
+        <option value="งานคู่"></option>
         <option value="งานกลุ่ม"></option>
         <option value="โครงงาน"></option>
       </datalist>
@@ -1645,7 +1608,7 @@ try{
   console.error(err);
 }
 
-const TAGS = ["งานเดี่ยว", "งานกลุ่ม", "โครงงาน"];
+const TAGS = ["งานเดี่ยว", "งานคู่", "งานกลุ่ม", "โครงงาน"];
 const EMOJIS = ["📘","🎨","🚀","🌟","🧩","🎯","🏆","🔬","🎮","📐"];
 // ธีมสีของแต่ละห้องเรียน สุ่มแบบ deterministic ตาม id ห้อง (ห้องเดิมได้สีเดิมเสมอ)
 const ROOM_THEMES = [
@@ -1783,50 +1746,7 @@ function showErr(prefix, error){
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-  // อัปเดตความสูง topbar (ใช้จัดตำแหน่งแท็บ sticky) + เลื่อนแคปซูล pill หลังหน้าโชว์แล้ว
-  requestAnimationFrame(()=>{ updateTopbarHeight(); syncTabPills(); });
 }
-
-/* ---------------------------- 💊 Segmented Pill Tabs ----------------------------
-   สร้าง/เลื่อนแคปซูล .tab-pill ให้ทับปุ่มแท็บที่ active อยู่ ในทุกแถบ .tab-switch
-   เรียกทุกครั้งที่สลับแท็บ / เปลี่ยนหน้า / ปรับขนาดจอ */
-function syncTabPills(){
-  document.querySelectorAll(".tab-switch").forEach(sw=>{
-    let pill = sw.querySelector(":scope > .tab-pill");
-    if(!pill){
-      pill = document.createElement("span");
-      pill.className = "tab-pill";
-      sw.insertBefore(pill, sw.firstChild);
-    }
-    const active = sw.querySelector(":scope > .tab-btn.active");
-    // ถ้าแถบยังไม่ถูกแสดง (offsetParent เป็น null) หรือไม่มีปุ่ม active -> ซ่อน pill ไว้ก่อน
-    if(!active || sw.offsetParent === null || active.offsetWidth === 0){
-      pill.style.opacity = "0";
-      return;
-    }
-    pill.style.opacity = "1";
-    // offsetLeft/offsetWidth อ้างอิงกับ .tab-switch (position:sticky = ตัวตั้งตำแหน่ง) รวม padding แล้ว
-    pill.style.width = active.offsetWidth + "px";
-    pill.style.transform = "translateX(" + active.offsetLeft + "px)";
-  });
-}
-
-// วัดความสูงของ topbar ในหน้าที่กำลังแสดง แล้วเก็บเป็นตัวแปร CSS ให้แท็บ sticky เว้นระยะพอดี
-function updateTopbarHeight(){
-  const active = document.querySelector(".screen.active");
-  const bar = active ? active.querySelector(".topbar") : null;
-  if(bar){
-    const h = Math.round(bar.getBoundingClientRect().height);
-    if(h > 0) document.documentElement.style.setProperty("--topbar-h", h + "px");
-  }
-}
-
-// จอปรับขนาด/หมุน -> คำนวณตำแหน่งใหม่ (debounce เบาๆ)
-let _tabResizeTimer = null;
-window.addEventListener("resize", function(){
-  clearTimeout(_tabResizeTimer);
-  _tabResizeTimer = setTimeout(function(){ updateTopbarHeight(); syncTabPills(); }, 120);
-});
 function openModal(id){ document.getElementById(id).classList.add("active"); }
 function closeModal(id){ document.getElementById(id).classList.remove("active"); }
 
@@ -2265,7 +2185,6 @@ function switchClassroomTab(tab){
   document.getElementById("tabChecklistBtn").classList.toggle("active", tab==="checklist");
   document.getElementById("paneBoard").classList.toggle("active", tab==="board");
   document.getElementById("paneChecklist").classList.toggle("active", tab==="checklist");
-  syncTabPills();
   if(tab==="checklist") loadChecklist();
 }
 function renderFilterBar(){
@@ -3387,22 +3306,18 @@ function handleCheckClick(postId){
 async function openGradePost(postId, assignment){
   const post = state.posts.find(p=>p.id===postId);
   if(!post) return;
-  // ปิดการ์ดขยาย (lightbox) ก่อน ถ้าเปิดค้างอยู่ — กัน modal ให้คะแนนโดนบัง/ทับกันจนกดไม่ได้
-  closeModal2("modalViewPost");
-  const maxScore = assignment.max_score ?? 10;
   document.getElementById("gradePostId").value = postId;
   document.getElementById("gradeAssignmentId").value = assignment.id;
-  document.getElementById("gradeMaxScore").value = maxScore;
+  document.getElementById("gradeMaxScore").value = assignment.max_score ?? 10;
   document.getElementById("gradePassScore").value = (assignment.pass_score ?? "");
   document.getElementById("gradeAssignmentHint").innerHTML =
-    `<span class="grade-pin">📌</span><div><b>${escapeHtml(assignment.title)}</b><span class="grade-assignment-sub">เต็ม ${maxScore} คะแนน${(assignment.pass_score!==null && assignment.pass_score!==undefined) ? ` · เกณฑ์ผ่าน ${assignment.pass_score}` : ""}</span></div>`;
+    `<span class="grade-pin">📌</span><div><b>${escapeHtml(assignment.title)}</b><span class="grade-assignment-sub">เต็ม ${assignment.max_score ?? 10} คะแนน${(assignment.pass_score!==null && assignment.pass_score!==undefined) ? ` · เกณฑ์ผ่าน ${assignment.pass_score}` : ""}</span></div>`;
   document.getElementById("gradeScoreLabel").textContent = "คะแนนที่ได้";
-  document.getElementById("gradeScoreMaxLabel").textContent = `/ ${maxScore}`;
-  document.getElementById("gradeScoreInput").max = maxScore;
+  document.getElementById("gradeScoreMaxLabel").textContent = `/ ${assignment.max_score ?? 10}`;
+  document.getElementById("gradeScoreInput").max = assignment.max_score ?? 10;
   document.getElementById("gradeScoreInput").value = (post.score!==null && post.score!==undefined) ? post.score : "";
-  renderQuickScores(maxScore, document.getElementById("gradeScoreInput").value); // สร้างชิปเลือกคะแนน 0..เต็ม
   document.getElementById("gradeUncheckBtn").style.display = post.checked ? "inline-block" : "none";
-  onGradeScoreInput(); // อัปเดตตัวชี้ผ่าน/ไม่ผ่าน + ไฮไลต์ชิปตามคะแนนเดิม (ถ้ามี)
+  onGradeScoreInput(); // อัปเดตตัวชี้ผ่าน/ไม่ผ่านตามคะแนนเดิม (ถ้ามี)
 
   const knownWrap = document.getElementById("gradeStudentKnownWrap");
   const pickWrap = document.getElementById("gradeStudentPickWrap");
@@ -3437,7 +3352,6 @@ async function openGradePost(postId, assignment){
       .eq("student_id", studentId).eq("assignment_id", assignment.id).maybeSingle();
     if(data && data.score!==null && data.score!==undefined){
       document.getElementById("gradeScoreInput").value = data.score;
-      onGradeScoreInput(); // ไฮไลต์ชิป + อัปเดตตัวชี้ผ่าน ตามคะแนนเดิมที่ดึงมา
     }
   }
 }
@@ -3453,9 +3367,8 @@ async function onGradeStudentPick(){
 }
 // อัปเดตตัวชี้ "ผ่าน/ไม่ผ่าน" แบบสดขณะพิมพ์คะแนน (ให้ครูเห็นผลทันทีก่อนกดบันทึก)
 function onGradeScoreInput(){
-  const raw = document.getElementById("gradeScoreInput").value;
-  highlightQuickScore(raw); // ซิงก์ไฮไลต์ชิปกับค่าที่พิมพ์
   const el = document.getElementById("gradePassIndicator");
+  const raw = document.getElementById("gradeScoreInput").value;
   const passRaw = document.getElementById("gradePassScore").value;
   if(raw===""){ el.innerHTML = ""; return; }
   if(passRaw===""){ el.innerHTML = ""; return; } // ไม่ได้ตั้งเกณฑ์ผ่าน ไม่ต้องโชว์อะไร
@@ -3464,40 +3377,6 @@ function onGradeScoreInput(){
   el.innerHTML = score >= pass
     ? `<span class="grade-pass-ok">✅ ผ่านเกณฑ์ (ต้องการ ${pass} ขึ้นไป)</span>`
     : `<span class="grade-pass-no">⚠️ ยังไม่ถึงเกณฑ์ผ่าน (ต้องการ ${pass} ขึ้นไป) — จะขึ้นสถานะ "ต้องสอบแก้"</span>`;
-}
-// สร้างชิปเลือกคะแนน 0..คะแนนเต็ม (คลิกครั้งเดียวได้เลย) — คะแนนเต็มไม่เกิน 20 ถึงจะโชว์ชิป (มากกว่านั้นให้พิมพ์เอง)
-function renderQuickScores(maxScore, current){
-  const wrap = document.getElementById("gradeQuickScores");
-  const hint = document.getElementById("gradeQuickHint");
-  if(!wrap) return;
-  const m = Math.floor(Number(maxScore));
-  if(!(m > 0) || m > 20){
-    wrap.innerHTML = "";
-    if(hint) hint.style.display = "none"; // คะแนนเต็มเยอะเกิน แสดงชิปไม่ไหว -> ให้พิมพ์เอง
-    return;
-  }
-  if(hint) hint.style.display = "block";
-  let html = "";
-  for(let i = 0; i <= m; i++){
-    html += `<button type="button" class="quick-score-chip" data-val="${i}" onclick="pickQuickScore(${i})">${i}</button>`;
-  }
-  wrap.innerHTML = html;
-  highlightQuickScore(current);
-}
-// ไฮไลต์ชิปที่ตรงกับคะแนนปัจจุบัน
-function highlightQuickScore(val){
-  const wrap = document.getElementById("gradeQuickScores");
-  if(!wrap) return;
-  const v = (val==="" || val===null || val===undefined) ? null : parseFloat(val);
-  wrap.querySelectorAll(".quick-score-chip").forEach(chip=>{
-    chip.classList.toggle("active", v!==null && parseFloat(chip.dataset.val) === v);
-  });
-}
-// คลิกชิป -> เติมคะแนนลงช่อง แล้วอัปเดตทุกอย่าง
-function pickQuickScore(val){
-  const inp = document.getElementById("gradeScoreInput");
-  inp.value = val;
-  onGradeScoreInput();
 }
 // บันทึกคะแนน — เขียนเข้า submissions (ระบบเดียวกับ Dashboard/กรอกคะแนน) + อัปเดต posts (checked + score) ให้โชว์บนการ์ดเร็ว
 async function saveGradePost(){
@@ -3805,9 +3684,7 @@ function openPostForm(sectionId){
   state.pendingSectionId = sectionId || null;  // ถ้ากด + จากคอลัมน์ไหน ผลงานนี้จะเข้าคอลัมน์นั้นตรงๆ
   document.getElementById("modalPostTitle").textContent = "โพสต์ผลงานใหม่";
   document.getElementById("submitPostBtn").textContent = "🚀 โพสต์เลย";
-  document.getElementById("inputStudentName").value = "";
   document.getElementById("inputDesc").value = "";
-  fillStudentNoDropdown("");
   document.getElementById("inputLink").value = "";
   document.getElementById("inputImage").value = "";
   document.getElementById("inputFile").value = "";
@@ -3820,22 +3697,86 @@ function openPostForm(sectionId){
   switchAttach("image");
   document.getElementById("tagSelect").innerHTML = TAGS.map(t=>
     `<div class="chip ${t===selectedTag?'active':''}" onclick="pickTag('${t}')">${t}</div>`).join("");
+  postStudentEntries = [{no:"", name:""}];
+  setPostStudentMode(tagToStudentMode(selectedTag), true);
   openModal("modalPost");
 }
-// เติมตัวเลือกเลขที่ลง dropdown (เรียงตามเลขที่) + เลือกค่าปัจจุบัน
-function fillStudentNoDropdown(currentNo){
-  const sel = document.getElementById("inputStudentNo");
+/* ---------------------------- แถวชื่อนักเรียน: เดี่ยว/คู่/กลุ่ม ---------------------------- */
+// state ของแถวชื่อในฟอร์มโพสต์ปัจจุบัน (ไม่ได้เก็บใน state หลักเพราะเป็นแค่ draft ระหว่างกรอกฟอร์ม)
+let postStudentEntries = [{no:"", name:""}];
+let postStudentMode = "single"; // single | pair | group
+// แปลงแท็กที่เลือก -> โหมดจำนวนชื่อที่ต้องกรอก
+function tagToStudentMode(t){
+  if(t==="งานคู่") return "pair";
+  if(t==="งานกลุ่ม") return "group";
+  return "single";
+}
+// สร้างตัวเลือกเลขที่ (dropdown) เป็น string HTML ให้แต่ละแถวใช้ร่วมกัน
+function studentNoOptionsHtml(currentNo){
   const students = state.roomStudents || [];
   let opts = '<option value="">— ยังไม่เลือก —</option>';
   opts += students.map(s=>`<option value="${s.no}" ${String(s.no)===String(currentNo)?"selected":""}>เลขที่ ${s.no} — ${escapeHtml(s.name)}</option>`).join("");
-  sel.innerHTML = opts;
+  return opts;
 }
-// เมื่อเลือกเลขที่ -> เติมชื่อจากรายชื่อให้อัตโนมัติ (นักเรียนไม่ต้องพิมพ์)
-function onPickStudentNo(){
-  const no = document.getElementById("inputStudentNo").value;
+// อ่านค่าที่กรอกอยู่จากแถวใน DOM กลับเข้า postStudentEntries (เรียกก่อน re-render ทุกครั้งเพื่อไม่ให้ข้อมูลหาย)
+function collectPostStudentEntries(){
+  const rows = document.querySelectorAll("#studentRowsWrap .student-row");
+  if(rows.length===0) return;
+  postStudentEntries = Array.from(rows).map(r=>({
+    no: r.querySelector(".student-no-select").value,
+    name: r.querySelector(".student-name-input").value
+  }));
+}
+// วาดแถวชื่อทั้งหมดใหม่ตาม postStudentEntries + postStudentMode
+function renderStudentRows(){
+  const wrap = document.getElementById("studentRowsWrap");
+  const removable = postStudentMode==="group" && postStudentEntries.length>1;
+  wrap.innerHTML = postStudentEntries.map((e,i)=>`
+    <div class="student-row" data-row-index="${i}">
+      <select class="student-no-select" onchange="onPickStudentNoRow(this)">${studentNoOptionsHtml(e.no)}</select>
+      <input type="text" class="student-name-input" placeholder="ชื่อ-นามสกุลนักเรียน" value="${escapeHtml(e.name||"")}">
+      ${removable ? `<button type="button" class="remove-row-btn" title="ลบ" onclick="removeStudentRow(${i})">✕</button>` : ""}
+    </div>`).join("");
+  document.getElementById("addStudentRowBtn").style.display = postStudentMode==="group" ? "inline-block" : "none";
+  const labelMap = { single:"เลือกเลขที่ + ชื่อ-นามสกุลนักเรียน *", pair:"ชื่อสมาชิกงานคู่ (2 คน) *", group:"ชื่อสมาชิกงานกลุ่ม *" };
+  document.getElementById("studentFieldLabel").textContent = labelMap[postStudentMode] || labelMap.single;
+}
+// เปลี่ยนโหมด (เดี่ยว/คู่/กลุ่ม) — ปรับจำนวนแถวให้ตรง พร้อมพยายามรักษาชื่อที่กรอกไว้แล้ว
+function setPostStudentMode(mode, isFreshForm){
+  if(!isFreshForm) collectPostStudentEntries();
+  postStudentMode = mode;
+  const filledCount = postStudentEntries.filter(e=>(e.name||"").trim() || e.no).length;
+  const minCount = mode==="single" ? 1 : 2;
+  let targetCount = Math.max(minCount, mode==="group" ? filledCount : minCount);
+  while(postStudentEntries.length < targetCount) postStudentEntries.push({no:"", name:""});
+  if(mode!=="group") postStudentEntries = postStudentEntries.slice(0, targetCount);
+  renderStudentRows();
+}
+// ปุ่ม ➕ เพิ่มสมาชิก (เฉพาะโหมดงานกลุ่ม)
+function addStudentRow(){
+  collectPostStudentEntries();
+  postStudentEntries.push({no:"", name:""});
+  renderStudentRows();
+}
+// ปุ่ม ✕ ลบแถว (เฉพาะโหมดงานกลุ่ม เมื่อเหลือมากกว่า 1 แถว)
+function removeStudentRow(index){
+  collectPostStudentEntries();
+  postStudentEntries.splice(index, 1);
+  if(postStudentEntries.length===0) postStudentEntries.push({no:"", name:""});
+  renderStudentRows();
+}
+// เมื่อเลือกเลขที่ในแถวไหน -> เติมชื่อจากรายชื่อให้อัตโนมัติเฉพาะแถวนั้น (นักเรียนไม่ต้องพิมพ์)
+function onPickStudentNoRow(selectEl){
+  const no = selectEl.value;
+  const row = selectEl.closest(".student-row");
+  const nameInput = row.querySelector(".student-name-input");
   if(!no) return;
   const student = (state.roomStudents||[]).find(s=>String(s.no)===String(no));
-  if(student){ document.getElementById("inputStudentName").value = student.name; }
+  if(student){ nameInput.value = student.name; }
+}
+// แยกชื่อที่เก็บแบบคั่นด้วยจุลภาค (เช่น "ก, ข, ค") กลับเป็น array — ใช้ตอนเปิดแก้ไขโพสต์เดิม
+function parseStudentNames(str){
+  return (str||"").split(",").map(s=>s.trim()).filter(Boolean);
 }
 // เปิดฟอร์มเดิมในโหมดแก้ไข พร้อมเติมข้อมูลเดิมลงไป (Phase 1)
 function editPost(postId){
@@ -3846,9 +3787,7 @@ function editPost(postId){
   state.pendingSectionId = p.section_id || null;
   document.getElementById("modalPostTitle").textContent = "แก้ไขผลงาน";
   document.getElementById("submitPostBtn").textContent = "💾 บันทึกการแก้ไข";
-  document.getElementById("inputStudentName").value = p.student_name || "";
   document.getElementById("inputDesc").value = p.description || "";
-  fillStudentNoDropdown(p.student_no || "");
   document.getElementById("inputLink").value = p.link_url || "";
   document.getElementById("inputImage").value = "";
   document.getElementById("inputFile").value = "";
@@ -3862,11 +3801,16 @@ function editPost(postId){
   switchAttach(attachMode);
   document.getElementById("tagSelect").innerHTML = TAGS.map(t=>
     `<div class="chip ${t===selectedTag?'active':''}" onclick="pickTag('${t}')">${t}</div>`).join("");
+  // เติมชื่อเดิมกลับเข้าแถว (โพสต์เก่าก่อนมีฟีเจอร์นี้จะมีแค่ชื่อเดียว ก็จะขึ้นแถวเดียวให้แก้ไขต่อได้)
+  const names = parseStudentNames(p.student_name);
+  postStudentEntries = names.length>0 ? names.map((n,i)=>({ no: i===0 ? (p.student_no||"") : "", name:n })) : [{ no: p.student_no||"", name: p.student_name||"" }];
+  setPostStudentMode(tagToStudentMode(selectedTag), true);
   openModal("modalPost");
 }
 function pickTag(t){
   selectedTag = t;
   document.querySelectorAll("#tagSelect .chip").forEach(c=>c.classList.toggle("active", c.textContent===t));
+  setPostStudentMode(tagToStudentMode(t));
 }
 function switchAttach(mode){
   attachMode = mode;
@@ -4171,12 +4115,16 @@ function compressImage(file, maxWidth, quality){
   });
 }
 async function submitPost(){
-  const name = document.getElementById("inputStudentName").value.trim();
+  collectPostStudentEntries();
+  const validEntries = postStudentEntries.map(e=>({ no:e.no, name:(e.name||"").trim() })).filter(e=>e.name);
   const desc = document.getElementById("inputDesc").value.trim();
   const link = document.getElementById("inputLink").value.trim();
   const room = state.currentClassroom;
 
-  if(!name){ showToast("กรอกชื่อ-นามสกุลด้วยนะ"); return; }
+  if(postStudentMode==="pair" && validEntries.length<2){ showToast("งานคู่ต้องกรอกชื่อให้ครบ 2 คนนะ"); return; }
+  if(postStudentMode==="group" && validEntries.length<2){ showToast("งานกลุ่มต้องมีสมาชิกอย่างน้อย 2 คนนะ"); return; }
+  if(validEntries.length===0){ showToast("กรอกชื่อ-นามสกุลด้วยนะ"); return; }
+  const name = validEntries.map(e=>e.name).join(", ");
   if(!desc){ showToast("กรอกคำอธิบายผลงานด้วยนะ"); return; }
   if(attachMode==="image" && !compressedBlob){ showToast("เลือกรูปภาพก่อนนะ"); return; }
   if(attachMode==="link" && !link){ showToast("ใส่ลิงก์ผลงานก่อนนะ"); return; }
@@ -4203,8 +4151,8 @@ async function submitPost(){
     file_name = selectedFile.name;
   }
 
-  const studentNoRaw = document.getElementById("inputStudentNo").value;
-  const student_no = studentNoRaw ? parseInt(studentNoRaw, 10) : null;
+  // เลขที่จะบันทึกได้เฉพาะตอนงานเดี่ยวและมีคนเดียว (งานคู่/กลุ่มมีหลายเลขที่ เก็บในคอลัมน์เดียวไม่ได้ จึงเว้นว่างไว้)
+  const student_no = (validEntries.length===1 && validEntries[0].no) ? parseInt(validEntries[0].no, 10) : null;
 
   const payload = {
     classroom_id: room.id,
@@ -4301,7 +4249,6 @@ function switchAdminTab(tab){
   document.getElementById("adtabClassrooms").classList.toggle("active", tab==="classrooms");
   document.getElementById("adPaneOverview").classList.toggle("active", tab==="overview");
   document.getElementById("adPaneClassrooms").classList.toggle("active", tab==="classrooms");
-  syncTabPills();
   if(tab==="overview") loadOverviewData();
 }
 
@@ -4631,7 +4578,6 @@ function setArTabUi(tab){
     document.getElementById("artab"+capitalize(t)).classList.toggle("active", t===tab);
     document.getElementById("arPane"+capitalize(t)).classList.toggle("active", t===tab);
   });
-  syncTabPills();
 }
 function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 async function switchAdminRoomTab(tab){
