@@ -123,6 +123,15 @@
   .sk-btn{height:38px; margin:0 14px 12px; border-radius:12px;}
   .sk-card{height:90px; margin:14px; border-radius:14px;}
   @keyframes skShimmer{0%{background-position:200% 0;} 100%{background-position:-200% 0;}}
+  /* ---------- Skeleton ใช้กว้างทั้งแอป (ตาราง/รายการ) ระหว่างรอโหลดข้อมูลจาก Supabase ---------- */
+  .skel-bar{height:15px; border-radius:8px; background:linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%); background-size:200% 100%; animation:skShimmer 1.3s infinite;}
+  .skel-table-row{display:flex; gap:14px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border);}
+  .skel-table-row .skel-bar:first-child{flex:0 0 140px;}
+  .skel-table-row .skel-bar{flex:1;}
+  .skel-list-item{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 14px; border:1px solid var(--border); border-radius:12px; margin-bottom:8px;}
+  .skel-dash-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:14px; margin-bottom:16px;}
+  .skel-dash-card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px 16px; text-align:center;}
+  .skel-dash-card .skel-bar{margin:0 auto;}
   /* โซนหัวคอลัมน์ทั้งชุด (ชื่อ+จำนวน+ปุ่มเพิ่ม) ปักค้างด้านบนตอนเลื่อนการ์ดข้างใน */
   .board-column-sticky{
     position:sticky; top:0; z-index:2; background:var(--surface);
@@ -651,8 +660,19 @@
   }
   .search-box input:focus{border-color:var(--brand); box-shadow:0 0 0 3px rgba(253,184,51,.15);}
   .checklist-scroll{
-    overflow:auto; max-height:70vh; background:var(--card); border-radius:16px; box-shadow:var(--shadow); margin-top:8px;
+    overflow:auto; max-height:70vh; border-radius:16px; box-shadow:var(--shadow); margin-top:8px;
     -webkit-overflow-scrolling:touch; scroll-behavior:smooth;
+    /* เงาจางบอกขอบว่ายังเลื่อนซ้าย-ขวาได้อีก (มาสก์สีพื้นด้านในเคลื่อนตามเนื้อหา ทับเงาที่ fix อยู่กับกรอบ) */
+    background-color:var(--card);
+    background-image:
+      linear-gradient(to right, var(--card) 30%, rgba(255,255,255,0)),
+      linear-gradient(to left, var(--card) 30%, rgba(255,255,255,0)),
+      linear-gradient(to right, rgba(0,0,0,.10), rgba(0,0,0,0)),
+      linear-gradient(to left, rgba(0,0,0,.10), rgba(0,0,0,0));
+    background-repeat:no-repeat;
+    background-size:40px 100%, 40px 100%, 14px 100%, 14px 100%;
+    background-position:0 0, 100% 0, 0 0, 100% 0;
+    background-attachment:local, local, scroll, scroll;
   }
   /* scrollbar ให้เห็นชัดว่าเลื่อนซ้าย-ขวาได้ */
   .checklist-scroll::-webkit-scrollbar{height:12px; width:12px;}
@@ -690,6 +710,19 @@
   [data-theme="dark"] .progress-pill.pill-retake{background:rgba(229,72,77,.18); color:#FFB4B6;}
   [data-theme="dark"] tr.row-need-retake td{background:rgba(229,72,77,.09);}
   [data-theme="dark"] tr.row-need-retake td:first-child{background:rgba(229,72,77,.16); box-shadow:inset 3px 0 0 #E5484D, 2px 0 6px rgba(0,0,0,.3);}
+  /* ---------- มุมมองการ์ด (จอแคบ ≤600px) แทนตารางกว้าง — เลื่อนขึ้น-ลงแทนซ้าย-ขวา ---------- */
+  .mobile-card-list{display:flex; flex-direction:column; gap:10px; margin-top:8px;}
+  .mobile-student-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 14px; box-shadow:var(--shadow);}
+  .mobile-student-card.row-need-retake{background:#FFF5F5; box-shadow:inset 3px 0 0 #E5484D, var(--shadow);}
+  [data-theme="dark"] .mobile-student-card.row-need-retake{background:rgba(229,72,77,.12); box-shadow:inset 3px 0 0 #E5484D, var(--shadow);}
+  .msc-head{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border);}
+  .msc-name{font-weight:700; font-size:.92rem;}
+  .msc-rows{display:flex; flex-direction:column; gap:2px;}
+  .msc-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px dashed var(--border);}
+  .msc-row:last-child{border-bottom:none;}
+  .msc-row-label{font-size:.82rem; color:var(--muted); flex:1; min-width:0;}
+  .msc-row-value{flex:0 0 auto; display:flex; align-items:center;}
+  .msc-row-value .status-cell{min-height:auto;}
   [data-theme="dark"] .dash-card-retake{border-color:rgba(229,72,77,.45); background:linear-gradient(180deg,rgba(229,72,77,.14),var(--card));}
   [data-theme="dark"] .dash-card-retake .num{color:#FF8A8D;}
   /* ---------- Score grid (admin) ---------- */
@@ -701,20 +734,26 @@
   .score-max-hint{font-weight:400; font-size:.7rem; color:var(--muted);}
   .score-pass-hint{font-weight:600; font-size:.7rem; color:#B8860B;}
   [data-theme="dark"] .score-pass-hint{color:#E5C158;}
-  table.score-table input{width:64px; padding:6px; border-radius:8px; border:1.5px solid var(--border); text-align:center; font-family:'Kanit',sans-serif; background:var(--surface); color:var(--text);}
-  table.score-table input:not(:placeholder-shown){background:#EAFBEE; border-color:var(--green); color:#1B4D2E;}
+  .score-graded-hint{display:block; font-weight:400; font-size:.68rem; color:var(--accent); margin-top:2px;}
+  .score-filter-chips{display:flex; gap:6px; flex-wrap:wrap;}
+  /* .score-input ใช้ทั้งในตาราง (td>input) และมุมมองการ์ดมือถือ (.msc-row-value>input) — คลาสเดียวกันจึงหน้าตาเหมือนกันทุกที่ */
+  .score-input{width:64px; padding:6px; border-radius:8px; border:1.5px solid var(--border); text-align:center; font-family:'Kanit',sans-serif; background:var(--surface); color:var(--text);}
+  .msc-row-value .score-input{width:88px;}
+  .score-input:not(:placeholder-shown){background:#EAFBEE; border-color:var(--green); color:#1B4D2E;}
+  [data-theme="dark"] .score-input:not(:placeholder-shown){background:rgba(63,191,127,.16); border-color:var(--green); color:#8FE3B3;}
   /* 🎯 ไม่ผ่านเกณฑ์ (เช่น คะแนนสอบกลางภาคไม่ถึงเกณฑ์) — ขึ้นสีแดงเตือนชัดเจน แรงกว่าสีเขียวปกติ */
-  table.score-table input.below-pass{background:#FDECEC !important; border-color:#E5484D !important; color:#7A1F23 !important; font-weight:700;}
-  table.score-table input.below-pass:focus{outline:2px solid #E5484D;}
+  .score-input.below-pass{background:#FDECEC !important; border-color:#E5484D !important; color:#7A1F23 !important; font-weight:700;}
+  .score-input.below-pass:focus{outline:2px solid #E5484D;}
+  [data-theme="dark"] .score-input.below-pass{background:rgba(229,72,77,.22) !important; border-color:#E5484D !important; color:#FFB4B6 !important;}
   /* แถบสรุปเตือนคนที่ยังไม่ผ่านเกณฑ์ เหนือตารางคะแนน */
   .below-pass-banner{background:#FDECEC; border:1.5px solid #F5B5B7; color:#7A1F23; border-radius:12px; padding:11px 16px; margin-bottom:12px; font-size:.88rem; line-height:1.5;}
   .below-pass-banner b{color:#C11C22; font-weight:700;}
   [data-theme="dark"] .below-pass-banner{background:rgba(229,72,77,.14); border-color:rgba(229,72,77,.45); color:#FFB4B6;}
   [data-theme="dark"] .below-pass-banner b{color:#FF8A8D;}
   /* ซ่อนลูกศรเพิ่ม-ลดของ input number เฉพาะช่องกรอกคะแนน — ให้พิมพ์เลขได้เลย */
-  table.score-table input::-webkit-outer-spin-button,
-  table.score-table input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
-  table.score-table input[type="number"]{-moz-appearance:textfield; appearance:textfield;}
+  .score-input::-webkit-outer-spin-button,
+  .score-input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .score-input[type="number"]{-moz-appearance:textfield; appearance:textfield;}
   /* ---------- Dashboard cards ---------- */
   .dash-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px;}
   .dash-card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px 16px; box-shadow:var(--shadow); text-align:center; transition:.2s transform;}
@@ -949,7 +988,7 @@
     table.score-table th, table.score-table td{
       position:static !important; box-shadow:none !important; border:1px solid #ccc !important; padding:4px 6px !important;
     }
-    table.score-table input{ border:none; background:transparent; width:auto; }
+    .score-input{ border:none; background:transparent; width:auto; }
     tr{ page-break-inside:avoid; }
     thead{ display:table-header-group; }
   }
@@ -1160,6 +1199,11 @@
 
 <!-- ============ SCREEN: ADMIN ============ -->
 <div id="screen-admin" class="screen">
+  <div class="board-breadcrumb">
+    <button class="crumb-link" onclick="navigate('home')">🏠 หน้าหลัก</button>
+    <span class="crumb-sep">›</span>
+    <span class="crumb-current">🔐 แผงควบคุมครู</span>
+  </div>
   <div class="topbar">
     <h1>🔐 แผงควบคุมครู</h1>
     <div class="actions">
@@ -1458,6 +1502,13 @@
 
 <!-- ============ SCREEN: ADMIN ROOM DETAIL (เช็คงาน) ============ -->
 <div id="screen-admin-room" class="screen">
+  <div class="board-breadcrumb">
+    <button class="crumb-link" onclick="navigate('home')">🏠 หน้าหลัก</button>
+    <span class="crumb-sep">›</span>
+    <button class="crumb-link" onclick="backToAdmin()">🔐 แผงควบคุมครู</button>
+    <span class="crumb-sep">›</span>
+    <span class="crumb-current" id="crumbAdminRoomName">ห้องเรียน</span>
+  </div>
   <div class="topbar">
     <h1 id="adminRoomTitle">🏫 จัดการห้องเรียน</h1>
     <div class="actions">
@@ -3468,7 +3519,7 @@ async function toggleLike(postId, btn){
 /* ---------------------------- Checklist (student-facing, read-only) ---------------------------- */
 async function loadChecklist(){
   const wrap = document.getElementById("checklistWrap");
-  wrap.innerHTML = '<div class="loading">กำลังโหลดข้อมูลเช็คงาน...</div>';
+  wrap.innerHTML = `<div class="skel-dash-cards">${Array.from({length:4}).map(()=>'<div class="skel-dash-card"><div class="skel-bar" style="width:44%; height:22px; margin:0 auto 10px;"></div><div class="skel-bar" style="width:70%; margin:0 auto;"></div></div>').join("")}</div>${skeletonTableHtml(6,3)}`;
   const roomId = state.currentClassroom.id;
   const [sRes, aRes] = await Promise.all([
     supabaseClient.from("students").select("*").eq("classroom_id", roomId).order("order_index",{ascending:true}),
@@ -3545,11 +3596,13 @@ function renderChecklistTable(students, assignments, subs){
   drawChecklist("");
 }
 
+let checklistCurrentKeyword = "";
 function filterChecklist(keyword){
   drawChecklist(keyword.trim().toLowerCase());
 }
 
 function drawChecklist(keyword){
+  checklistCurrentKeyword = keyword;
   const { students, subs } = state.checklistData;
   // เรียงงานให้ชิ้นที่ 1 อยู่ซ้ายสุด (สลับทางเดียวกับหน้ากรอกคะแนน เพื่อให้ทั้ง 2 หน้าเรียงตรงกัน)
   const assignments = [...state.checklistData.assignments].reverse();
@@ -3614,7 +3667,42 @@ function drawChecklist(keyword){
     return;
   }
 
-  html += `<div class="checklist-scroll"><table class="checklist-table"><thead><tr>
+  html += (isNarrowScreen() ? checklistCardsHtml(rows, assignments, subs, badges) : checklistTableHtml(rows, assignments, subs, badges));
+  document.getElementById("checklistWrap").innerHTML = html;
+  restoreSearchFocus(keyword);
+}
+// สถานะ 1 ชิ้นงานของนักเรียน 1 คน — ใช้ร่วมกันทั้งมุมมองตาราง (td) และมุมมองการ์ดมือถือ
+function checklistCellStatusHtml(st, a, submitted, subs){
+  const done = submitted.has(st.id+"_"+a.id);
+  const hasPassRule = a.pass_score!==null && a.pass_score!==undefined;
+  const sub = subs.find(s=>s.student_id===st.id && s.assignment_id===a.id);
+  const scoreVal = (sub && sub.score!==null && sub.score!==undefined) ? parseFloat(sub.score) : null;
+  const belowPass = hasPassRule && scoreVal!==null && scoreVal < a.pass_score;
+  if(belowPass) return '<div class="status-cell" title="ต้องสอบแก้"><span class="status-dot dot-retake">⚠</span><span class="status-sublabel retake">สอบแก้</span></div>';
+  return done
+    ? '<div class="status-cell"><span class="status-dot dot-yes">✓</span></div>'
+    : '<div class="status-cell"><span class="status-dot dot-no"></span></div>';
+}
+// ป้ายสรุปท้ายแถว (ส่งครบ/ค้าง/ต้องสอบแก้) — ใช้ร่วมกันทั้ง 2 มุมมอง
+function checklistSummaryPillHtml(retakeCount, missing){
+  if(retakeCount>0) return `<span class="progress-pill pill-retake">⚠️ ต้องสอบแก้ ${retakeCount} งาน</span>`;
+  if(missing>0) return `<span class="progress-pill" style="background:#FFE9E9; color:#E04848; font-weight:600;">ค้าง ${missing} งาน</span>`;
+  return `<span class="progress-pill" style="background:#EAFBEE; color:#2E9E4C; font-weight:600;">ส่งครบ 🎉</span>`;
+}
+// นับชิ้นที่ต้องสอบแก้ของนักเรียนคนนี้
+function checklistRetakeCount(st, assignments, subs){
+  let retakeCount = 0;
+  assignments.forEach(a=>{
+    if(a.pass_score===null || a.pass_score===undefined) return;
+    const sub = subs.find(s=>s.student_id===st.id && s.assignment_id===a.id);
+    if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score) retakeCount++;
+  });
+  return retakeCount;
+}
+// มุมมองตาราง (จอกว้าง) — เลื่อนซ้าย-ขวาเมื่องานเยอะ
+function checklistTableHtml(rows, assignments, subs, badges){
+  const submitted = new Set(subs.filter(s=>s.score!==null && s.score!==undefined).map(s=>s.student_id+"_"+s.assignment_id));
+  let html = `<div class="checklist-scroll"><table class="checklist-table"><thead><tr>
       <th>ชื่อนักเรียน</th>`;
   assignments.forEach(a=>{
     const passHint = (a.pass_score!==null && a.pass_score!==undefined) ? `<br><span class="score-pass-hint">🎯 ผ่าน ${a.pass_score}</span>` : "";
@@ -3625,52 +3713,94 @@ function drawChecklist(keyword){
     const missing = assignments.length - doneCount;
     const badgeIcons = (badges.fastIds.has(st.id) ? '<span class="student-badge" title="3 คนแรกที่ส่งครบ">⚡</span>' : "")
       + (badges.perfectIds.has(st.id) ? '<span class="student-badge" title="ส่งครบทุกงาน">🎯</span>' : "");
-    // นับชิ้นที่ต้องสอบแก้ของนักเรียนคนนี้
-    let retakeCount = 0;
-    assignments.forEach(a=>{
-      if(a.pass_score===null || a.pass_score===undefined) return;
-      const sub = subs.find(s=>s.student_id===st.id && s.assignment_id===a.id);
-      if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score) retakeCount++;
-    });
+    const retakeCount = checklistRetakeCount(st, assignments, subs);
     let row = `<tr${retakeCount>0 ? ' class="row-need-retake"' : ''}><td>${escapeHtml(st.name)} ${badgeIcons}</td>`;
-    assignments.forEach(a=>{
-      const done = submitted.has(st.id+"_"+a.id);
-      const hasPassRule = a.pass_score!==null && a.pass_score!==undefined;
-      const sub = subs.find(s=>s.student_id===st.id && s.assignment_id===a.id);
-      const scoreVal = (sub && sub.score!==null && sub.score!==undefined) ? parseFloat(sub.score) : null;
-      const belowPass = hasPassRule && scoreVal!==null && scoreVal < a.pass_score;
-      if(belowPass){
-        // ⚠️ ส่งแล้วแต่คะแนนไม่ถึงเกณฑ์ = ต้องสอบแก้
-        row += `<td><div class="status-cell" title="ต้องสอบแก้"><span class="status-dot dot-retake">⚠</span><span class="status-sublabel retake">สอบแก้</span></div></td>`;
-      } else {
-        row += done
-          ? `<td><div class="status-cell"><span class="status-dot dot-yes">✓</span></div></td>`
-          : `<td><div class="status-cell"><span class="status-dot dot-no"></span></div></td>`;
-      }
-    });
-    // คอลัมน์สถานะ: ต้องสอบแก้สำคัญที่สุด แสดงก่อน
-    if(retakeCount>0){
-      row += `<td><span class="progress-pill pill-retake">⚠️ ต้องสอบแก้ ${retakeCount} งาน</span></td></tr>`;
-    } else if(missing>0){
-      row += `<td><span class="progress-pill" style="background:#FFE9E9; color:#E04848; font-weight:600;">ค้าง ${missing} งาน</span></td></tr>`;
-    } else {
-      row += `<td><span class="progress-pill" style="background:#EAFBEE; color:#2E9E4C; font-weight:600;">ส่งครบ 🎉</span></td></tr>`;
-    }
+    assignments.forEach(a=>{ row += `<td>${checklistCellStatusHtml(st, a, submitted, subs)}</td>`; });
+    row += `<td>${checklistSummaryPillHtml(retakeCount, missing)}</td></tr>`;
     html += row;
   });
   html += `</tbody></table></div>`;
-  document.getElementById("checklistWrap").innerHTML = html;
-  restoreSearchFocus(keyword);
+  return html;
+}
+// มุมมองการ์ด (จอแคบ ≤600px) — การ์ดต่อนักเรียน 1 คน เลื่อนขึ้น-ลงแทนซ้าย-ขวา
+function checklistCardsHtml(rows, assignments, subs, badges){
+  const submitted = new Set(subs.filter(s=>s.score!==null && s.score!==undefined).map(s=>s.student_id+"_"+s.assignment_id));
+  return '<div class="mobile-card-list">' + rows.map(({st, doneCount})=>{
+    const missing = assignments.length - doneCount;
+    const badgeIcons = (badges.fastIds.has(st.id) ? '<span class="student-badge" title="3 คนแรกที่ส่งครบ">⚡</span>' : "")
+      + (badges.perfectIds.has(st.id) ? '<span class="student-badge" title="ส่งครบทุกงาน">🎯</span>' : "");
+    const retakeCount = checklistRetakeCount(st, assignments, subs);
+    const rowsHtml = assignments.map(a=>`
+      <div class="msc-row">
+        <span class="msc-row-label">${escapeHtml(a.title)}</span>
+        <span class="msc-row-value">${checklistCellStatusHtml(st, a, submitted, subs)}</span>
+      </div>`).join("");
+    return `<div class="mobile-student-card${retakeCount>0 ? ' row-need-retake' : ''}">
+      <div class="msc-head"><span class="msc-name">${escapeHtml(st.name)} ${badgeIcons}</span>${checklistSummaryPillHtml(retakeCount, missing)}</div>
+      <div class="msc-rows">${rowsHtml}</div>
+    </div>`;
+  }).join("") + '</div>';
 }
 
 // คืน focus + ตำแหน่ง cursor ให้ช่องค้นหา หลัง re-render ตาราง (ไม่งั้นพิมพ์ต่อไม่ได้)
-function restoreSearchFocus(keyword){
-  const input = document.getElementById("checklistSearch");
+function restoreSearchFocus(keyword, inputId){
+  const input = document.getElementById(inputId || "checklistSearch");
   if(input && keyword !== ""){
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
   }
 }
+
+/* ---------------------------- Skeleton loading (ใช้ตอนรอโหลดข้อมูลจาก Supabase) ---------------------------- */
+// แถวตาราง shimmer — ใช้กับตารางเช็คงาน/กรอกคะแนนตอนกำลังโหลด แทนคำว่า "กำลังโหลด..." เฉยๆ
+function skeletonTableHtml(rows, cols){
+  let html = "";
+  for(let r=0; r<rows; r++){
+    html += '<div class="skel-table-row">';
+    html += '<div class="skel-bar"></div>';
+    for(let c=0; c<cols; c++) html += '<div class="skel-bar"></div>';
+    html += '</div>';
+  }
+  return html;
+}
+// รายการ shimmer — ใช้กับลิสต์นักเรียน/รายการงานฝั่ง Admin
+function skeletonListHtml(rows){
+  let html = "";
+  for(let r=0; r<rows; r++){
+    html += '<div class="skel-list-item"><div class="skel-bar" style="flex:1;"></div><div class="skel-bar" style="flex:0 0 60px;"></div></div>';
+  }
+  return html;
+}
+// การ์ดสรุป shimmer — ใช้กับแถบ dash-cards ตอน Dashboard กำลังโหลด
+function skeletonDashCardsHtml(count){
+  let html = '<div class="skel-dash-cards">';
+  for(let i=0; i<count; i++){
+    html += '<div class="skel-dash-card"><div class="skel-bar" style="width:44%; height:22px; margin-bottom:10px;"></div><div class="skel-bar" style="width:70%;"></div></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ---------------------------- มุมมองการ์ด vs ตาราง ตามความกว้างจอ ---------------------------- */
+// จอแคบ (มือถือ) ใช้จุดตัดเดียวกับ CSS breakpoint อื่นๆ ในแอป (600px) — ต่ำกว่านี้ใช้การ์ดแทนตารางกว้าง
+function isNarrowScreen(){ return window.innerWidth <= 600; }
+// สลับข้ามเส้น breakpoint (หมุนจอ/ปรับขนาดหน้าต่าง) แล้ว re-draw เฉพาะแท็บที่กำลังเปิดอยู่ ไม่ไปยุ่งแท็บอื่น
+let _lastNarrowState = isNarrowScreen();
+let _resizeRedrawTimer = null;
+window.addEventListener("resize", ()=>{
+  clearTimeout(_resizeRedrawTimer);
+  _resizeRedrawTimer = setTimeout(()=>{
+    const nowNarrow = isNarrowScreen();
+    if(nowNarrow === _lastNarrowState) return; // ยังไม่ข้ามเส้น ไม่ต้องทำอะไร กันรบกวนตอนกำลังพิมพ์คะแนน
+    _lastNarrowState = nowNarrow;
+    if(document.getElementById("screen-board")?.classList.contains("active") && document.getElementById("paneChecklist")?.classList.contains("active")){
+      drawChecklist(checklistCurrentKeyword);
+    }
+    if(document.getElementById("screen-admin-room")?.classList.contains("active") && state.adminRoomTab==="scores"){
+      drawScoreGrid();
+    }
+  }, 250);
+});
 
 /* ---------------------------- Post Form ---------------------------- */
 let selectedTag = TAGS[0];
@@ -4263,7 +4393,7 @@ function inferGrade(room){
 
 async function loadOverviewData(){
   const wrap = document.getElementById("overviewContent");
-  wrap.innerHTML = '<div class="loading">กำลังรวบรวมข้อมูลทุกห้องเรียน...</div>';
+  wrap.innerHTML = skeletonDashCardsHtml(4) + skeletonListHtml(4);
 
   const { data: classrooms, error: cErr } = await supabaseClient.from("classrooms").select("*");
   if(cErr){ wrap.innerHTML = '<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>'; console.error(cErr); return; }
@@ -4568,8 +4698,10 @@ async function openAdminRoom(id){
   state.adminRoom = room;
   state.adminRoomTab = "dashboard";
   document.getElementById("adminRoomTitle").textContent = `${emojiFor(room.id)} ${room.name} — จัดการเช็คงาน`;
+  document.getElementById("crumbAdminRoomName").textContent = `${emojiFor(room.id)} ${room.name}`;
   showScreen("screen-admin-room");
   setArTabUi("dashboard");
+  showArPaneSkeleton("dashboard");
   await loadAdminRoomData();
 }
 function backToAdmin(){ showScreen("screen-admin"); }
@@ -4583,7 +4715,23 @@ function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 async function switchAdminRoomTab(tab){
   state.adminRoomTab = tab;
   setArTabUi(tab);
+  showArPaneSkeleton(tab);
   await loadAdminRoomData();
+}
+// โชว์ skeleton ในแท็บที่กำลังจะเปิด ระหว่างรอข้อมูลจาก Supabase (กันหน้าดูค้าง/ว่างเปล่า)
+function showArPaneSkeleton(tab){
+  if(tab==="dashboard"){
+    document.getElementById("arPaneDashboard").innerHTML = skeletonDashCardsHtml(4);
+  } else if(tab==="students"){
+    const el = document.getElementById("adminStudentList");
+    if(el) el.innerHTML = skeletonListHtml(5);
+  } else if(tab==="assignments"){
+    const el = document.getElementById("adminAssignmentList");
+    if(el) el.innerHTML = skeletonListHtml(4);
+  } else if(tab==="scores"){
+    const el = document.getElementById("scoreGridWrap");
+    if(el) el.innerHTML = skeletonTableHtml(6,4);
+  }
 }
 async function loadAdminRoomData(){
   const roomId = state.adminRoom.id;
@@ -4809,29 +4957,56 @@ async function deleteAssignment(id){
 function findSubmission(studentId, assignmentId){
   return state.submissions.find(s=>s.student_id===studentId && s.assignment_id===assignmentId);
 }
+let scoreFilterKeyword = "";
+let scoreFilterMode = "all"; // all | missing | below
+// เรียกตอนโหลดข้อมูลห้องใหม่/สลับแท็บเข้ามา — รีเซ็ตตัวกรองกลับเป็นค่าเริ่มต้นเสมอ
 function renderScoreGrid(){
+  scoreFilterKeyword = "";
+  scoreFilterMode = "all";
+  drawScoreGrid();
+}
+function filterScoreGrid(keyword){
+  scoreFilterKeyword = keyword.trim().toLowerCase();
+  drawScoreGrid();
+}
+function setScoreFilterMode(mode){
+  scoreFilterMode = mode;
+  drawScoreGrid();
+}
+function drawScoreGrid(){
   const wrap = document.getElementById("scoreGridWrap");
   if(state.students.length===0 || state.assignments.length===0){
     wrap.innerHTML = '<div class="empty-state">ต้องมีทั้งรายชื่อนักเรียนและรายการงานก่อน ถึงจะกรอกคะแนนได้</div>';
     return;
   }
-  // นับจำนวน "ครั้ง" ที่ไม่ผ่านเกณฑ์ และจำนวนคนที่มีอย่างน้อย 1 ชิ้นไม่ผ่าน (สำหรับแถบสรุปเหนือตาราง)
+  const scoreAssignments = [...state.assignments].reverse();
+  const hasAnyPassRule = state.assignments.some(a=>a.pass_score!==null && a.pass_score!==undefined);
+
+  // สรุปภาพรวมทั้งห้องเสมอ (ไม่ผูกกับคำค้นหา/ตัวกรอง) — ใช้ทั้งทำแถบเตือนและนับตัวเลขบนปุ่มกรอง
   let belowCount = 0;
   const belowStudentIds = new Set();
-  state.assignments.forEach(a=>{
-    if(a.pass_score===null || a.pass_score===undefined) return;
-    state.students.forEach(st=>{
+  const missingStudentIds = new Set();
+  state.students.forEach(st=>{
+    let hasMissing = false;
+    scoreAssignments.forEach(a=>{
       const sub = findSubmission(st.id, a.id);
-      if(sub && sub.score!==null && sub.score!==undefined && parseFloat(sub.score) < a.pass_score){
-        belowCount++;
-        belowStudentIds.add(st.id);
+      const val = (sub && sub.score!==null && sub.score!==undefined) ? parseFloat(sub.score) : null;
+      if(val===null) hasMissing = true;
+      if(a.pass_score!==null && a.pass_score!==undefined && val!==null && val < a.pass_score){
+        belowCount++; belowStudentIds.add(st.id);
       }
     });
+    if(hasMissing) missingStudentIds.add(st.id);
   });
-  const hasAnyPassRule = state.assignments.some(a=>a.pass_score!==null && a.pass_score!==undefined);
   const belowBanner = (hasAnyPassRule && belowCount>0)
     ? `<div class="below-pass-banner no-print">⚠️ มี <b>${belowStudentIds.size}</b> คน ที่คะแนนยังไม่ถึงเกณฑ์ผ่าน (รวม <b>${belowCount}</b> ชิ้นงาน) — ช่องสีแดงคือชิ้นที่ต้องเตรียมสอบแก้</div>`
     : "";
+
+  // กรองแถวนักเรียนที่จะแสดง ตามคำค้นหา + ปุ่มกรองสถานะ
+  let rows = state.students;
+  if(scoreFilterKeyword) rows = rows.filter(st=>st.name.toLowerCase().includes(scoreFilterKeyword));
+  if(scoreFilterMode==="missing") rows = rows.filter(st=>missingStudentIds.has(st.id));
+  if(scoreFilterMode==="below") rows = rows.filter(st=>belowStudentIds.has(st.id));
 
   let html = `
     <div class="print-header">
@@ -4839,33 +5014,77 @@ function renderScoreGrid(){
       <p>พิมพ์เมื่อวันที่ ${new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' })}</p>
     </div>
     ${belowBanner}
-    <div class="no-print" style="text-align:right; margin-bottom:8px;">
+    <div class="checklist-toolbar no-print">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="scoreSearch" placeholder="ค้นหาชื่อนักเรียน..." value="${escapeHtml(scoreFilterKeyword)}" oninput="filterScoreGrid(this.value)">
+      </div>
+      <div class="score-filter-chips">
+        <button class="chip ${scoreFilterMode==='all'?'active':''}" onclick="setScoreFilterMode('all')">ทั้งหมด <span id="scoreChipAllCount">${state.students.length}</span></button>
+        <button class="chip ${scoreFilterMode==='missing'?'active':''}" onclick="setScoreFilterMode('missing')">ยังไม่ครบ <span id="scoreChipMissingCount">${missingStudentIds.size}</span></button>
+        ${hasAnyPassRule ? `<button class="chip ${scoreFilterMode==='below'?'active':''}" onclick="setScoreFilterMode('below')">ต่ำกว่าเกณฑ์ <span id="scoreChipBelowCount">${belowStudentIds.size}</span></button>` : ""}
+      </div>
       <button class="btn btn-outline" onclick="window.print()">🖨️ พิมพ์ตารางคะแนน</button>
-    </div>
-    <div class="checklist-scroll"><table class="score-table"><thead><tr><th>ชื่อนักเรียน</th>`;
-  // หน้ากรอกคะแนน: เรียงงานสลับทางกับหน้ารายการงาน (งานล่างสุด = คอลัมน์แรกซ้ายสุด = ชิ้นที่ 1)
-  const scoreAssignments = [...state.assignments].reverse();
+    </div>`;
+
+  if(rows.length===0){
+    html += `<div class="empty-state">
+      <span class="big-emoji">🔍</span>
+      <h3>ไม่พบรายชื่อที่ตรงเงื่อนไข</h3>
+      <p>ลองเปลี่ยนคำค้นหาหรือตัวกรองดูนะ</p>
+    </div>`;
+    wrap.innerHTML = html;
+    restoreSearchFocus(scoreFilterKeyword, "scoreSearch");
+    return;
+  }
+
+  html += (isNarrowScreen() ? scoreCardsHtml(rows, scoreAssignments) : scoreTableHtml(rows, scoreAssignments));
+  wrap.innerHTML = html;
+  restoreSearchFocus(scoreFilterKeyword, "scoreSearch");
+}
+// ช่อง input คะแนน 1 ช่อง — ใช้ร่วมกันทั้งมุมมองตาราง (td) และมุมมองการ์ดมือถือ (.msc-row-value) โครงสร้าง/ตัวจัดการเหมือนกันทุกที่
+function scoreInputHtml(st, a){
+  const sub = findSubmission(st.id, a.id);
+  const val = (sub && sub.score!==null && sub.score!==undefined) ? sub.score : "";
+  const passScore = a.pass_score;
+  const hasPassRule = passScore!==null && passScore!==undefined;
+  const belowPass = hasPassRule && val!=="" && parseFloat(val) < passScore;
+  const belowClass = belowPass ? " below-pass" : "";
+  const titleAttr = hasPassRule ? ` title="เกณฑ์ผ่าน ${passScore} คะแนน${belowPass ? ' — ยังไม่ผ่าน ต้องเตรียมสอบแก้ ⚠️' : ''}"` : "";
+  return `<input type="number" inputmode="decimal" placeholder="-" value="${val}" max="${a.max_score ?? 10}" min="0" class="score-input${belowClass}" data-pass="${hasPassRule ? passScore : ''}" onchange="saveScore('${st.id}','${a.id}', this, ${a.max_score ?? 10})" onkeydown="handleScoreKey(event, this)" oninput="updateScoreCellState(this)"${titleAttr}>`;
+}
+// มุมมองตาราง (จอกว้าง) — เลื่อนซ้าย-ขวาเมื่องานเยอะ
+function scoreTableHtml(rows, scoreAssignments){
+  let html = `<div class="checklist-scroll"><table class="score-table"><thead><tr><th>ชื่อนักเรียน</th>`;
   scoreAssignments.forEach(a=>{
+    // % ให้คะแนนแล้วของงานชิ้นนี้ — คิดจากนักเรียนทั้งห้อง ไม่ใช่เฉพาะแถวที่กรองอยู่
+    const gradedCount = state.students.filter(st=>{ const sub=findSubmission(st.id,a.id); return sub && sub.score!==null && sub.score!==undefined; }).length;
+    const gradedPct = state.students.length>0 ? Math.round(gradedCount/state.students.length*100) : 0;
     const passHint = (a.pass_score!==null && a.pass_score!==undefined) ? ` · <span class="score-pass-hint">ผ่าน ${a.pass_score}</span>` : "";
-    html += `<th>${escapeHtml(a.title)}<br><span class="score-max-hint">เต็ม ${a.max_score ?? 10}</span>${passHint}</th>`;
+    html += `<th>${escapeHtml(a.title)}<br><span class="score-max-hint">เต็ม ${a.max_score ?? 10}</span>${passHint}<span class="score-graded-hint">ให้แล้ว ${gradedPct}%</span></th>`;
   });
   html += `</tr></thead><tbody>`;
-  state.students.forEach(st=>{
+  rows.forEach(st=>{
     html += `<tr><td>${escapeHtml(st.name)}</td>`;
-    scoreAssignments.forEach(a=>{
-      const sub = findSubmission(st.id, a.id);
-      const val = (sub && sub.score!==null && sub.score!==undefined) ? sub.score : "";
-      const passScore = a.pass_score;
-      const hasPassRule = passScore!==null && passScore!==undefined;
-      const belowPass = hasPassRule && val!=="" && parseFloat(val) < passScore;
-      const belowClass = belowPass ? " below-pass" : "";
-      const titleAttr = hasPassRule ? ` title="เกณฑ์ผ่าน ${passScore} คะแนน${belowPass ? ' — ยังไม่ผ่าน ต้องเตรียมสอบแก้ ⚠️' : ''}"` : "";
-      html += `<td><input type="number" inputmode="decimal" placeholder="-" value="${val}" max="${a.max_score ?? 10}" min="0" class="${belowClass.trim()}" data-pass="${hasPassRule ? passScore : ''}" onchange="saveScore('${st.id}','${a.id}', this, ${a.max_score ?? 10})" onkeydown="handleScoreKey(event, this)" oninput="updateScoreCellState(this)"${titleAttr}></td>`;
-    });
+    scoreAssignments.forEach(a=>{ html += `<td>${scoreInputHtml(st, a)}</td>`; });
     html += `</tr>`;
   });
   html += `</tbody></table></div>`;
-  wrap.innerHTML = html;
+  return html;
+}
+// มุมมองการ์ด (จอแคบ ≤600px) — การ์ดต่อนักเรียน 1 คน เลื่อนขึ้น-ลงแทนซ้าย-ขวา
+function scoreCardsHtml(rows, scoreAssignments){
+  return '<div class="mobile-card-list">' + rows.map(st=>{
+    const rowsHtml = scoreAssignments.map(a=>`
+      <div class="msc-row">
+        <span class="msc-row-label">${escapeHtml(a.title)} <span class="score-max-hint">/ ${a.max_score ?? 10}</span></span>
+        <span class="msc-row-value">${scoreInputHtml(st, a)}</span>
+      </div>`).join("");
+    return `<div class="mobile-student-card">
+      <div class="msc-head"><span class="msc-name">${escapeHtml(st.name)}</span></div>
+      <div class="msc-rows">${rowsHtml}</div>
+    </div>`;
+  }).join("") + '</div>';
 }
 // พิมพ์คะแนนแล้วกดออกจากช่อง (Tab/คลิกที่อื่น/ลูกศร) จะบันทึกอัตโนมัติ — ไม่ rebuild ตารางทั้งหมด กันหน้าเด้ง/เสียโฟกัส
 // 🔗 เชื่อม 2 ทาง (Part 19): ให้คะแนนจากหน้านี้แล้ว sync กลับไปอัปเดตการ์ดในบอร์ดผลงานด้วย
@@ -4917,6 +5136,19 @@ async function saveScore(studentId, assignmentId, input, maxScore){
 }
 // คำนวณและอัปเดตข้อความในแถบสรุป "คนที่ยังไม่ผ่านเกณฑ์" แบบสด
 function refreshBelowPassBanner(){
+  // อัปเดตตัวเลขบนปุ่มกรอง "ยังไม่ครบ" เสมอ (ไม่ต้องมีเกณฑ์ผ่านก็นับได้)
+  const missingChip = document.getElementById("scoreChipMissingCount");
+  if(missingChip){
+    let missingCount = 0;
+    state.students.forEach(st=>{
+      const hasMissing = state.assignments.some(a=>{
+        const sub = findSubmission(st.id, a.id);
+        return !(sub && sub.score!==null && sub.score!==undefined);
+      });
+      if(hasMissing) missingCount++;
+    });
+    missingChip.textContent = missingCount;
+  }
   const banner = document.querySelector(".below-pass-banner");
   const hasAnyPassRule = state.assignments.some(a=>a.pass_score!==null && a.pass_score!==undefined);
   if(!hasAnyPassRule) return;
@@ -4931,6 +5163,9 @@ function refreshBelowPassBanner(){
       }
     });
   });
+  // อัปเดตตัวเลขบนปุ่มกรอง "ต่ำกว่าเกณฑ์" ด้วย
+  const belowChip = document.getElementById("scoreChipBelowCount");
+  if(belowChip) belowChip.textContent = belowStudentIds.size;
   if(belowCount===0){ if(banner) banner.remove(); return; }
   const msg = `⚠️ มี <b>${belowStudentIds.size}</b> คน ที่คะแนนยังไม่ถึงเกณฑ์ผ่าน (รวม <b>${belowCount}</b> ชิ้นงาน) — ช่องสีแดงคือชิ้นที่ต้องเตรียมสอบแก้`;
   if(banner){ banner.innerHTML = msg; return; }
