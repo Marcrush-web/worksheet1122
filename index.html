@@ -1701,6 +1701,7 @@ let state = {
   posts: [],
   layout: "grid",          // grid | masonry
   activeTag: "ทั้งหมด",
+  statusFilter: "all",      // all | checked | pending — ตัวกรองสถานะตรวจงานในหน้าบอร์ด
   isAdmin: isAdminSessionValid(),
   presentMode: null,       // grid | slideshow
   slideIndex: 0,
@@ -2119,6 +2120,7 @@ async function openClassroom(id){
   if(!room) return;
   state.currentClassroom = room;
   state.activeTag = "ทั้งหมด";
+  state.statusFilter = "all"; // เข้าห้องใหม่ทุกครั้ง รีเซ็ตตัวกรองสถานะกลับเป็น "ทั้งหมด" เสมอ
   state.classroomTab = "board";
   document.getElementById("boardTitle").textContent = `${emojiFor(room.id)} ${room.name}`;
   document.getElementById("crumbRoomName").textContent = `${emojiFor(room.id)} ${room.name}`;
@@ -2238,12 +2240,30 @@ function switchClassroomTab(tab){
   document.getElementById("paneChecklist").classList.toggle("active", tab==="checklist");
   if(tab==="checklist") loadChecklist();
 }
+// ตัวกรองสถานะตรวจงาน เหนือบอร์ดผลงาน — ทั้งหมด / ตรวจแล้ว / รอตรวจ (กรองทุกคอลัมน์พร้อมกัน)
 function renderFilterBar(){
-  // ระบบเป็นคอลัมน์ล้วนแบบ Padlet — ไม่มีตัวกรอง/ปุ่มด้านบนแล้ว (หน้าจอเริ่มต้นจัดการปุ่มสร้างคอลัมน์เอง)
   const bar = document.getElementById("filterBar");
-  if(bar) bar.innerHTML = "";
+  if(!bar) return;
+  if(state.sections.length === 0){ bar.innerHTML = ""; return; } // ยังไม่มีคอลัมน์ ไม่ต้องโชว์ตัวกรอง
+  const total = state.posts.length;
+  const checkedCount = state.posts.filter(p=>p.checked).length;
+  const pendingCount = total - checkedCount;
+  bar.innerHTML = `
+    <button class="chip ${state.statusFilter==='all'?'active':''}" onclick="setStatusFilter('all')">ทั้งหมด (${total})</button>
+    <button class="chip ${state.statusFilter==='checked'?'active':''}" onclick="setStatusFilter('checked')">✅ ตรวจแล้ว (${checkedCount})</button>
+    <button class="chip ${state.statusFilter==='pending'?'active':''}" onclick="setStatusFilter('pending')">🕓 รอตรวจ (${pendingCount})</button>`;
 }
-function setFilter(tag){ state.activeTag = tag; renderFilterBar(); renderPosts(); }
+function setStatusFilter(mode){
+  state.statusFilter = mode;
+  renderFilterBar();
+  renderPosts();
+}
+// เช็คว่าโพสต์นี้ตรงกับตัวกรองสถานะที่เลือกอยู่ไหม — ใช้ทั้งตอน render เต็มและตอนอัปเดตการ์ดแบบ in-place
+function postMatchesStatusFilter(post){
+  if(state.statusFilter==="checked") return !!post.checked;
+  if(state.statusFilter==="pending") return !post.checked;
+  return true;
+}
 async function loadPosts(){
   const container = document.getElementById("postsContainer");
   const shelfEl = document.getElementById("shelfContainer");
@@ -2268,6 +2288,20 @@ function updatePostCardInPlace(postId){
   if(!post) return false;
   const el = document.querySelector(`.post-card[data-post-id="${postId}"]`);
   if(!el) return false;
+  renderFilterBar(); // อัปเดตจำนวนตรวจแล้ว/รอตรวจ ให้ตรงกับสถานะล่าสุดเสมอ
+  // มีตัวกรองสถานะเปิดอยู่ และการ์ดนี้ไม่ตรงกับตัวกรองแล้ว (เช่น เพิ่งตรวจเสร็จตอนกรอง "รอตรวจ" ค้างอยู่) -> เอาการ์ดออกจากมุมมองเลย แทนที่จะอัปเดตเนื้อหาเฉยๆ
+  if(!postMatchesStatusFilter(post)){
+    const colCardsEl = el.closest(".board-column-cards");
+    el.remove();
+    if(colCardsEl && colCardsEl.querySelectorAll(".post-card").length===0){
+      colCardsEl.innerHTML = `<div class="board-column-empty">
+        <span class="empty-emoji">🔍</span>
+        <span class="empty-title">ไม่มีผลงานที่ตรงกับตัวกรอง</span>
+        <span class="empty-sub">ลองเปลี่ยนตัวกรองด้านบนดูนะ</span>
+      </div>`;
+    }
+    return true;
+  }
   const sec = state.sections.find(s=>s.id===post.section_id);
   const wasCommentsLoaded = el.querySelector(".card-comments")?.dataset.loaded === "1";
   const temp = document.createElement("div");
@@ -2307,6 +2341,7 @@ async function fetchAndRenderPosts(animate){
   state.posts = posts;
   state.sections = secErr ? [] : (sections || []);
   computeBoardBadges(); // อัปเดตว่าใครขวัญใจบอร์ด/นักสร้างสรรค์ ทุกครั้งที่ข้อมูลเปลี่ยน
+  renderFilterBar(); // อัปเดตจำนวนตรวจแล้ว/รอตรวจ บนตัวกรองให้ตรงกับข้อมูลล่าสุดเสมอ
   renderPosts(animate);
 }
 function renderPosts(animate){
@@ -2357,7 +2392,8 @@ function toggleBoardView(){
 /* ---------------------------- Board Shelf: ระบบคอลัมน์แบบ Padlet (Phase 2) ---------------------------- */
 function renderShelfView(){
   const shelfEl = document.getElementById("shelfContainer");
-  const list = state.posts;
+  // กรองตามตัวกรองสถานะ (ทั้งหมด/ตรวจแล้ว/รอตรวจ) ก่อนแบ่งเข้าคอลัมน์ — กรองพร้อมกันทุกคอลัมน์
+  const list = state.posts.filter(postMatchesStatusFilter);
 
   // เก็บตำแหน่งเลื่อนไว้ก่อน rebuild (ทั้งแนวนอนของทั้งแถว + แนวตั้งของแต่ละคอลัมน์) — คืนกลับให้หลัง render กันจอเด้งขึ้นบนตอนมีข้อมูลใหม่เข้ามา (realtime)
   const prevShelfScrollLeft = shelfEl.scrollLeft;
@@ -2370,7 +2406,8 @@ function renderShelfView(){
 
   const columnsHtml = state.sections.map(sec=>{
     const cards = list.filter(p=>p.section_id===sec.id);
-    return columnHtml(sec.title, cards, sec.id, true, sec.tag, sec.assignment_id);
+    const totalInSection = state.posts.filter(p=>p.section_id===sec.id).length;
+    return columnHtml(sec.title, cards, sec.id, true, sec.tag, sec.assignment_id, totalInSection);
   }).join("");
 
   // ปุ่มเพิ่มคอลัมน์ท้ายสุด (เฉพาะครู) — ระบบเป็น Padlet ล้วน ไม่มีกอง "ไม่มีหมวด" แล้ว
@@ -2401,10 +2438,12 @@ async function loadAllVisibleComments(){
   Object.keys(byPost).forEach(pid=>renderCardComments(pid, byPost[pid]));
 }
 // สร้าง HTML ของ 1 คอลัมน์ (ใช้ร่วมกันทั้งคอลัมน์ปกติและ "ไม่มีหมวด")
-function columnHtml(title, cards, sectionId, canManage, sectionTag, assignmentId){
+function columnHtml(title, cards, sectionId, canManage, sectionTag, assignmentId, totalInSection){
   const addTarget = sectionId ? `'${sectionId}'` : "";
   const canDragCol = state.isAdmin && sectionId;
   const linkedAssignment = assignmentId ? (state.roomAssignments||[]).find(a=>a.id===assignmentId) : null;
+  // แยกให้ชัด: คอลัมน์ว่างจริงๆ (ยังไม่มีใครส่ง) กับ ว่างเพราะตัวกรองสถานะซ่อนไว้ (มีผลงานอยู่ แค่ไม่ตรงตัวกรองที่เลือก)
+  const isFilteredEmpty = cards.length===0 && (totalInSection||0) > 0;
   return `
     <div class="board-column${canDragCol ? ' col-draggable' : ''}" ${sectionId ? `data-col-id="${sectionId}"` : ''}
          ondragover="onColumnReorderOver(event,'${sectionId||''}')" ondragleave="onColumnReorderLeave(event)" ondrop="onColumnReorderDrop(event,'${sectionId||''}')">
@@ -2429,12 +2468,18 @@ function columnHtml(title, cards, sectionId, canManage, sectionTag, assignmentId
       </div>
       <div class="board-column-cards"${state.isAdmin ? ` data-drop-section="${sectionId||''}" ondragover="onColumnDragOver(event)" ondragleave="onColumnDragLeave(event)" ondrop="onColumnDrop(event, '${sectionId||''}')"` : ''}>
         ${cards.length===0
-          ? `<div class="board-column-empty">
-               <span class="empty-emoji">📂</span>
-               <span class="empty-title">ยังไม่มีผลงาน</span>
-               <span class="empty-sub">เป็นคนแรกที่ส่งผลงานในคอลัมน์นี้!</span>
-               <button class="empty-add" onclick="openPostForm(${addTarget})">+ เพิ่มผลงาน</button>
-             </div>`
+          ? (isFilteredEmpty
+              ? `<div class="board-column-empty">
+                   <span class="empty-emoji">🔍</span>
+                   <span class="empty-title">ไม่มีผลงานที่ตรงกับตัวกรอง</span>
+                   <span class="empty-sub">ลองเปลี่ยนตัวกรองด้านบนดูนะ</span>
+                 </div>`
+              : `<div class="board-column-empty">
+                   <span class="empty-emoji">📂</span>
+                   <span class="empty-title">ยังไม่มีผลงาน</span>
+                   <span class="empty-sub">เป็นคนแรกที่ส่งผลงานในคอลัมน์นี้!</span>
+                   <button class="empty-add" onclick="openPostForm(${addTarget})">+ เพิ่มผลงาน</button>
+                 </div>`)
           : cards.map(p=>postCardHtml(p, sectionTag)).join("")}
       </div>
     </div>`;
@@ -3345,6 +3390,9 @@ function handleCheckClick(postId){
     if(sec && !("assignment_id" in sec)){
       // คีย์ assignment_id หายไปทั้งคอลัมน์ = คอลัมน์นี้ในฐานข้อมูลไม่มีจริง (ยังไม่ได้รัน SQL Part 19)
       showToast("ยังไม่ได้รัน SQL Part 19 ในระบบเช็คงาน — ให้คะแนนจากบอร์ดไม่ได้จนกว่าจะรันก่อน");
+    } else if(sec && sec.assignment_id){
+      // มี assignment_id อยู่ แต่หาในรายการงานไม่เจอ = งานที่เคยผูกไว้ถูกลบไปแล้ว (ลิงก์ลอย) ต้องผูกใหม่
+      showToast("งานที่คอลัมน์นี้เคยผูกไว้ถูกลบไปแล้ว — กดปุ่ม 🔗 ผูกคอลัมน์กับเช็คงาน ด้านบน เพื่อผูกกับงานใหม่");
     } else {
       showToast("คอลัมน์นี้ยังไม่ผูกกับรายการงาน — กดปุ่ม 🔗 ผูกคอลัมน์กับเช็คงาน ด้านบน เพื่อผูกก่อนถึงจะให้คะแนนได้");
     }
@@ -4949,6 +4997,9 @@ async function deleteAssignment(id){
   if(!(await showConfirm("ลบงานนี้? คะแนนของงานนี้ทุกคนจะถูกลบด้วย"))) return;
   const { error } = await supabaseClient.from("assignments").delete().eq("id", id);
   if(error){ showErr("ลบไม่สำเร็จ", error); return; }
+  // เคลียร์คอลัมน์บอร์ดที่เคยผูกกับงานนี้ไว้ด้วย — กันไม่ให้ค้างเป็นลิงก์ลอย (ผูกอยู่กับงานที่ไม่มีอยู่แล้ว)
+  // ถ้าไม่เคลียร์ตรงนี้ กดปุ่ม ✓ ตรวจงานในคอลัมน์นั้นจะไม่ขึ้น popup ให้คะแนนอีกต่อไป (เพราะหางานที่ผูกไว้ไม่เจอ)
+  await supabaseClient.from("board_sections").update({ assignment_id: null }).eq("assignment_id", id);
   showToast("ลบแล้ว");
   await loadAdminRoomData();
 }
