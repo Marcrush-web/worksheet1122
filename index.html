@@ -333,6 +333,13 @@
   .post-card h4{font-size:1.05rem; font-weight:600; margin-bottom:5px; line-height:1.35;}
   .student-no{display:inline-block; background:var(--brand); color:#3D2400; font-size:.72rem; font-weight:700; padding:1px 8px; border-radius:6px; vertical-align:middle;}
   .grade-student-fixed{padding:11px 14px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; font-weight:600; font-size:.95rem;}
+  /* ---------- ✅ รายชื่อสมาชิกกลุ่ม/คู่ ในโมดัลให้คะแนน — คะแนนเดียวกันจะลงทุกคนที่จับคู่ไว้ ---------- */
+  .grade-group-list{display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto;}
+  .grade-group-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px;}
+  .grade-group-name{font-weight:600; font-size:.9rem; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .grade-group-matched{flex:0 0 auto; font-size:.8rem; font-weight:700; color:#12A150; background:rgba(18,161,80,.12); padding:4px 10px; border-radius:999px; white-space:nowrap;}
+  .grade-group-pick{flex:0 0 auto; max-width:58%; font-size:.82rem; padding:6px 8px; border-radius:8px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font-family:'Kanit',sans-serif;}
+  .grade-group-hint{font-size:.78rem; color:var(--muted); margin:-2px 0 4px;}
   /* ---------- ✅ Modal ให้คะแนน (ดีไซน์ใหม่) ---------- */
   .grade-modal{max-width:440px;}
   /* ---------- 🔗 หน้าจับคู่คอลัมน์เก่ากับรายการงาน (bulk link) ---------- */
@@ -1320,6 +1327,11 @@
       <select id="gradeStudentSelect" onchange="onGradeStudentPick()">
         <option value="">— เลือกนักเรียน —</option>
       </select>
+    </div>
+    <div class="field" id="gradeGroupWrap" style="display:none;">
+      <label>สมาชิกกลุ่ม/คู่ (จับคู่จากชื่อที่เลือกไว้ตอนโพสต์)</label>
+      <p class="grade-group-hint">คะแนนที่กรอกด้านล่างจะบันทึกให้ทุกคนในรายชื่อนี้เท่ากันหมด — ใครที่ระบบจับคู่ชื่อไม่เจอ (เช่น พิมพ์ชื่อไม่ตรงกับรายชื่อในห้อง) ให้เลือกเองจากช่องนั้น</p>
+      <div id="gradeGroupList" class="grade-group-list"></div>
     </div>
 
     <div class="field">
@@ -3420,27 +3432,40 @@ async function openGradePost(postId, assignment){
 
   const knownWrap = document.getElementById("gradeStudentKnownWrap");
   const pickWrap = document.getElementById("gradeStudentPickWrap");
+  const groupWrap = document.getElementById("gradeGroupWrap");
   let studentId = null;
 
-  if(post.student_no){
-    const st = (state.roomStudents||[]).find(s=>s.no===post.student_no);
-    if(st){
-      studentId = st.id;
-      knownWrap.style.display = "block";
-      pickWrap.style.display = "none";
-      document.getElementById("gradeStudentFixedLabel").innerHTML = `<span class="student-no">เลขที่ ${st.no}</span> ${escapeHtml(st.name)}`;
-      knownWrap.dataset.studentId = st.id;
-    }
-  }
-  if(!studentId){
-    // ไม่รู้ว่าเป็นของใคร — ให้ครูเลือกเอง จาก dropdown รายชื่อในห้อง
+  // งานคู่/งานกลุ่ม (โพสต์เก็บชื่อไว้หลายคน คั่นด้วยจุลภาค) -> ให้คะแนนพร้อมกันทุกคนในกลุ่ม แทนที่จะเลือกได้ทีละคน
+  const groupNames = parseStudentNames(post.student_name);
+  const isGroupPost = groupNames.length >= 2;
+
+  if(isGroupPost){
     knownWrap.style.display = "none";
-    pickWrap.style.display = "block";
-    const sel = document.getElementById("gradeStudentSelect");
-    const list = state.roomStudents || [];
-    sel.innerHTML = '<option value="">— เลือกนักเรียน —</option>' +
-      list.map(s=>`<option value="${s.id}">เลขที่ ${s.no} — ${escapeHtml(s.name)}</option>`).join("");
-    sel.value = "";
+    pickWrap.style.display = "none";
+    groupWrap.style.display = "block";
+    renderGradeGroupRows(groupNames);
+  } else {
+    groupWrap.style.display = "none";
+    if(post.student_no){
+      const st = (state.roomStudents||[]).find(s=>s.no===post.student_no);
+      if(st){
+        studentId = st.id;
+        knownWrap.style.display = "block";
+        pickWrap.style.display = "none";
+        document.getElementById("gradeStudentFixedLabel").innerHTML = `<span class="student-no">เลขที่ ${st.no}</span> ${escapeHtml(st.name)}`;
+        knownWrap.dataset.studentId = st.id;
+      }
+    }
+    if(!studentId){
+      // ไม่รู้ว่าเป็นของใคร — ให้ครูเลือกเอง จาก dropdown รายชื่อในห้อง
+      knownWrap.style.display = "none";
+      pickWrap.style.display = "block";
+      const sel = document.getElementById("gradeStudentSelect");
+      const list = state.roomStudents || [];
+      sel.innerHTML = '<option value="">— เลือกนักเรียน —</option>' +
+        list.map(s=>`<option value="${s.id}">เลขที่ ${s.no} — ${escapeHtml(s.name)}</option>`).join("");
+      sel.value = "";
+    }
   }
 
   openModal("modalGradePost");
@@ -3452,7 +3477,37 @@ async function openGradePost(postId, assignment){
     if(data && data.score!==null && data.score!==undefined){
       document.getElementById("gradeScoreInput").value = data.score;
     }
+  } else if(isGroupPost){
+    // กลุ่ม: ลองดึงคะแนนเดิมจากสมาชิกคนแรกที่จับคู่ชื่อได้ มาเติมให้ (เผื่อเคยให้คะแนนไว้ก่อนหน้านี้)
+    const roster = state.roomStudents || [];
+    const firstMatched = groupNames.map(n=>roster.find(s=>s.name.trim()===n.trim())).find(Boolean);
+    if(firstMatched){
+      const { data } = await supabaseClient.from("submissions").select("score")
+        .eq("student_id", firstMatched.id).eq("assignment_id", assignment.id).maybeSingle();
+      if(data && data.score!==null && data.score!==undefined){
+        document.getElementById("gradeScoreInput").value = data.score;
+        onGradeScoreInput();
+      }
+    }
   }
+}
+// วาดรายชื่อสมาชิกกลุ่ม/คู่ในโมดัลให้คะแนน — จับคู่ชื่อที่พิมพ์ไว้ตอนโพสต์ กับรายชื่อจริงในห้องแบบตรงตัวเป๊ะ
+// ชื่อไหนจับคู่ไม่ได้ (พิมพ์ชื่อไม่ตรงเป๊ะ/ไม่มีในห้อง) จะมี dropdown ให้ครูเลือกเอง กันคะแนนตกหล่น
+function renderGradeGroupRows(names){
+  const wrap = document.getElementById("gradeGroupList");
+  const roster = state.roomStudents || [];
+  wrap.innerHTML = names.map(name=>{
+    const matched = roster.find(s=>s.name.trim()===name.trim());
+    return `<div class="grade-group-row">
+      <span class="grade-group-name">${escapeHtml(name)}</span>
+      ${matched
+        ? `<span class="grade-group-matched" data-student-id="${matched.id}">✅ เลขที่ ${matched.no}</span>`
+        : `<select class="grade-group-pick">
+             <option value="">— เลือกนักเรียน —</option>
+             ${roster.map(s=>`<option value="${s.id}">เลขที่ ${s.no} — ${escapeHtml(s.name)}</option>`).join("")}
+           </select>`}
+    </div>`;
+  }).join("");
 }
 // เมื่อครูเลือกนักเรียนจาก dropdown (กรณีโพสต์ไม่มีเลขที่) -> ลองดึงคะแนนเดิมมาเติมให้เช่นกัน
 async function onGradeStudentPick(){
@@ -3482,15 +3537,50 @@ async function saveGradePost(){
   const postId = document.getElementById("gradePostId").value;
   const assignmentId = document.getElementById("gradeAssignmentId").value;
   const maxScore = parseFloat(document.getElementById("gradeMaxScore").value);
-  const knownWrap = document.getElementById("gradeStudentKnownWrap");
-  const studentId = knownWrap.style.display!=="none" ? knownWrap.dataset.studentId : document.getElementById("gradeStudentSelect").value;
+  const groupWrap = document.getElementById("gradeGroupWrap");
+  const isGroupMode = groupWrap.style.display !== "none";
 
-  if(!studentId){ showToast("เลือกนักเรียนก่อนนะ"); return; }
   const raw = document.getElementById("gradeScoreInput").value.trim();
   if(raw===""){ showToast("กรอกคะแนนก่อนนะ"); return; }
   const score = parseFloat(raw);
   if(isNaN(score) || score<0){ showToast("คะแนนไม่ถูกต้อง"); return; }
   if(score > maxScore){ showToast(`คะแนนเกินคะแนนเต็ม (เต็ม ${maxScore})`); return; }
+
+  if(isGroupMode){
+    // งานคู่/งานกลุ่ม — คะแนนเดียวกันนี้จะบันทึกให้ทุกคนในรายชื่อที่จับคู่ไว้พร้อมกัน
+    const studentIds = [];
+    let missing = false;
+    document.querySelectorAll("#gradeGroupList .grade-group-row").forEach(row=>{
+      const matchedEl = row.querySelector(".grade-group-matched");
+      const selectEl = row.querySelector(".grade-group-pick");
+      if(matchedEl) studentIds.push(matchedEl.dataset.studentId);
+      else if(selectEl && selectEl.value) studentIds.push(selectEl.value);
+      else missing = true;
+    });
+    if(missing){ showToast("ยังมีสมาชิกบางคนที่ยังไม่ได้เลือกว่าเป็นใคร — เลือกให้ครบทุกคนก่อนนะ"); return; }
+    if(studentIds.length===0){ showToast("ไม่พบสมาชิกกลุ่มที่จะให้คะแนน"); return; }
+
+    // บันทึกคะแนนเดียวกันให้ทุกคนในกลุ่มพร้อมกัน (upsert ครั้งเดียว ชนกันที่ student_id+assignment_id)
+    const rows = studentIds.map(sid=>({ student_id: sid, assignment_id: assignmentId, score, updated_at: new Date().toISOString() }));
+    const { error: subErr } = await supabaseClient.from("submissions")
+      .upsert(rows, { onConflict: "student_id,assignment_id" });
+    if(subErr){ showErr("บันทึกคะแนนไม่สำเร็จ", subErr); return; }
+
+    const post = state.posts.find(p=>p.id===postId);
+    const { error: postErr } = await supabaseClient.from("posts").update({ checked: true, score }).eq("id", postId);
+    if(postErr){ showErr("บันทึกคะแนนในระบบเช็คงานสำเร็จ แต่อัปเดตการ์ดไม่สำเร็จ (อาจยังไม่ได้รัน SQL Part 19)", postErr); return; }
+
+    if(post){ post.checked = true; post.score = score; }
+    closeModal("modalGradePost");
+    showToast(`บันทึกคะแนนแล้ว ✅ (${studentIds.length} คนในกลุ่ม ได้คะแนนเท่ากันหมด)`);
+    if(!updatePostCardInPlace(postId)) await refreshPostsSilently();
+    return;
+  }
+
+  // ----- โหมดคนเดียว (งานเดี่ยว) -----
+  const knownWrap = document.getElementById("gradeStudentKnownWrap");
+  const studentId = knownWrap.style.display!=="none" ? knownWrap.dataset.studentId : document.getElementById("gradeStudentSelect").value;
+  if(!studentId){ showToast("เลือกนักเรียนก่อนนะ"); return; }
 
   // บันทึกเข้า submissions แบบ upsert (ชนกันที่ student_id+assignment_id ตามที่ตั้ง unique ไว้)
   const { error: subErr } = await supabaseClient.from("submissions")
