@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   /* ☀️ โหมดสว่าง (ค่าเริ่มต้น) — แนว inskru: ขาวสะอาด เหลืองอบอุ่น ฟ้าสดใส เป็นมิตร */
   :root, [data-theme="light"]{
@@ -5165,6 +5166,8 @@ function drawScoreGrid(){
         <button class="chip ${scoreFilterMode==='missing'?'active':''}" onclick="setScoreFilterMode('missing')">ยังไม่ครบ <span id="scoreChipMissingCount">${missingStudentIds.size}</span></button>
         ${hasAnyPassRule ? `<button class="chip ${scoreFilterMode==='below'?'active':''}" onclick="setScoreFilterMode('below')">ต่ำกว่าเกณฑ์ <span id="scoreChipBelowCount">${belowStudentIds.size}</span></button>` : ""}
       </div>
+      <button class="btn btn-outline" onclick="exportScoresExcel()">📥 ดาวน์โหลด Excel</button>
+      <button class="btn btn-outline" onclick="copyScoresTable()">📋 คัดลอกตาราง</button>
       <button class="btn btn-outline" onclick="window.print()">🖨️ พิมพ์ตารางคะแนน</button>
     </div>`;
 
@@ -5182,6 +5185,62 @@ function drawScoreGrid(){
   html += (isNarrowScreen() ? scoreCardsHtml(rows, scoreAssignments) : scoreTableHtml(rows, scoreAssignments));
   wrap.innerHTML = html;
   restoreSearchFocus(scoreFilterKeyword, "scoreSearch");
+}
+/* ---------------------------- ส่งออกคะแนนดิบ (Excel / คัดลอก) ---------------------------- */
+// สร้างตารางคะแนนดิบทั้งห้อง (ไม่ผูกกับตัวกรอง/คำค้นหา): คอลัมน์งานเรียงชิ้นที่ 1 ซ้ายสุด เหมือนตารางในหน้ากรอกคะแนน
+function buildScoreExportRows(){
+  const assigns = [...state.assignments].reverse();
+  const hasPass = assigns.some(a=>a.pass_score!==null && a.pass_score!==undefined);
+  const rows = [];
+  rows.push(["เลขที่", "ชื่อนักเรียน", ...assigns.map(a=>a.title)]);
+  rows.push(["", "คะแนนเต็ม", ...assigns.map(a=>a.max_score ?? 10)]);
+  if(hasPass) rows.push(["", "เกณฑ์ผ่าน", ...assigns.map(a=>(a.pass_score!==null && a.pass_score!==undefined) ? a.pass_score : "")]);
+  state.students.forEach(st=>{
+    rows.push([st.no ?? "", st.name, ...assigns.map(a=>{
+      const sub = findSubmission(st.id, a.id);
+      return (sub && sub.score!==null && sub.score!==undefined) ? parseFloat(sub.score) : "";
+    })]);
+  });
+  return rows;
+}
+function scoreExportFileBase(){
+  const room = (state.adminRoom && state.adminRoom.name) ? state.adminRoom.name : "ห้องเรียน";
+  const d = new Date();
+  const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  return { room, name: `คะแนนดิบ_${room}_${ymd}`.replace(/[\\/:*?"<>|]/g,"-") };
+}
+function exportScoresExcel(){
+  if(state.students.length===0 || state.assignments.length===0){ showToast("ยังไม่มีข้อมูลให้ดาวน์โหลด"); return; }
+  const rows = buildScoreExportRows();
+  const { room, name } = scoreExportFileBase();
+  if(typeof XLSX === "undefined"){
+    // ไลบรารี Excel โหลดไม่ขึ้น (ออฟไลน์/ถูกบล็อก) — สำรองเป็น CSV (มี BOM ให้ Excel อ่านภาษาไทยถูก)
+    const csv = "\uFEFF" + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+    a.download = name + ".csv"; a.click(); URL.revokeObjectURL(a.href);
+    showToast("ดาวน์โหลดเป็น CSV แล้ว (โหลดตัวสร้าง Excel ไม่สำเร็จ)");
+    return;
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"] = rows[0].map((_,i)=> i===0 ? {wch:8} : i===1 ? {wch:30} : {wch:16});
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, room.replace(/[\\/?*\[\]:]/g,"-").slice(0,31) || "คะแนนดิบ");
+  XLSX.writeFile(wb, name + ".xlsx");
+  showToast("ดาวน์โหลด Excel แล้ว ✅");
+}
+// คัดลอกทั้งตารางเป็นข้อความคั่นด้วย Tab — วางลง Excel/Google Sheets ได้ตรงช่อง หรือวางในแชทเพื่อให้วิเคราะห์ต่อ
+async function copyScoresTable(){
+  if(state.students.length===0 || state.assignments.length===0){ showToast("ยังไม่มีข้อมูลให้คัดลอก"); return; }
+  const tsv = buildScoreExportRows().map(r=>r.map(c=>String(c).replace(/[\t\r\n]+/g," ")).join("\t")).join("\n");
+  try{
+    await navigator.clipboard.writeText(tsv);
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = tsv; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+  showToast("คัดลอกตารางคะแนนแล้ว 📋 วางใน Excel ได้เลย");
 }
 // ช่อง input คะแนน 1 ช่อง — ใช้ร่วมกันทั้งมุมมองตาราง (td) และมุมมองการ์ดมือถือ (.msc-row-value) โครงสร้าง/ตัวจัดการเหมือนกันทุกที่
 function scoreInputHtml(st, a){
