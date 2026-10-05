@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
   /* ☀️ โหมดสว่าง (ค่าเริ่มต้น) — แนว inskru: ขาวสะอาด เหลืองอบอุ่น ฟ้าสดใส เป็นมิตร */
   :root, [data-theme="light"]{
@@ -5209,11 +5209,64 @@ function scoreExportFileBase(){
   const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   return { room, name: `คะแนนดิบ_${room}_${ymd}`.replace(/[\\/:*?"<>|]/g,"-") };
 }
-function exportScoresExcel(){
+// จัดสไตล์ชีตคะแนนดิบ: แยกสีชัดเจน + ตรึงคอลัมน์เลขที่/ชื่อนักเรียน (และแถวหัวตาราง) ไว้ฝั่งซ้าย/บน
+// แยกเป็นฟังก์ชันของมันเอง (รับ ws ที่เติมข้อมูลแล้ว) เพื่อให้ทดสอบแยกได้
+function styleScoreWorksheet(ws, assigns, hasPass){
+  const C = { head:"FF4F46E5", headLine:"FFC7D2FE", max:"FFDBEAFE", maxText:"FF1E3A8A", pass:"FFFEF3C7", passText:"FF92400E",
+              nameCol:"FFEEF2FF", nameText:"FF1E1B4B", zebra:"FFF8FAFC", white:"FFFFFFFF", empty:"FFE2E8F0",
+              ok:"FFDCFCE7", okText:"FF166534", low:"FFFEE2E2", lowText:"FFB91C1C", line:"FFCBD5E1" };
+  const fill = argb => ({ type:"pattern", pattern:"solid", fgColor:{ argb } });
+  const side = argb => ({ style:"thin", color:{ argb } });
+  const box = argb => ({ top:side(argb), left:side(argb), bottom:side(argb), right:side(argb) });
+  const font = (argb, bold) => ({ name:"Tahoma", size:11, bold:!!bold, color:{ argb } });
+  const headerRows = hasPass ? 3 : 2;
+  const nCols = 2 + assigns.length;
+
+  ws.getColumn(1).width = 8;
+  ws.getColumn(2).width = 32;
+  for(let c=3; c<=nCols; c++) ws.getColumn(c).width = 18;
+
+  for(let r=1; r<=ws.rowCount; r++){
+    const row = ws.getRow(r);
+    row.height = r===1 ? 50 : 24;
+    for(let c=1; c<=nCols; c++){
+      const cell = row.getCell(c);
+      const isNameCell = (c===2 && r>headerRows);  // เฉพาะชื่อนักเรียนชิดซ้าย ส่วนหัวตารางและป้าย "คะแนนเต็ม/เกณฑ์ผ่าน" จัดกึ่งกลาง
+      const mid = { vertical:"middle", horizontal: isNameCell ? "left" : "center", wrapText: r===1 || c===2, indent: isNameCell ? 1 : 0 };
+      cell.alignment = mid;
+      if(r===1){                               // หัวตาราง: ม่วงเข้ม ตัวขาว
+        cell.fill = fill(C.head); cell.font = font(C.white, true); cell.border = box(C.headLine);
+      } else if(r===2){                        // คะแนนเต็ม: ฟ้า
+        cell.fill = fill(C.max); cell.font = font(C.maxText, true); cell.border = box(C.line);
+      } else if(hasPass && r===3){             // เกณฑ์ผ่าน: เหลืองอำพัน
+        cell.fill = fill(C.pass); cell.font = font(C.passText, true); cell.border = box(C.line);
+      } else {                                 // แถวนักเรียน
+        cell.border = box(C.line);
+        if(c<=2){                              // เลขที่ + ชื่อ: โทนม่วงอ่อน ตัวหนา ให้เด่นตอนเลื่อนดู
+          cell.fill = fill(C.nameCol); cell.font = font(C.nameText, true);
+        } else {
+          const a = assigns[c-3];
+          const pass = (a.pass_score!==null && a.pass_score!==undefined) ? Number(a.pass_score) : null;
+          const v = cell.value;
+          if(v===null || v===undefined || v===""){            // ยังไม่ให้คะแนน: เทา
+            cell.fill = fill(C.empty); cell.font = font("FF64748B", false);
+          } else if(pass!==null && Number(v) < pass){          // ต่ำกว่าเกณฑ์ผ่าน: แดง
+            cell.fill = fill(C.low); cell.font = font(C.lowText, true);
+          } else {                                             // ได้คะแนนแล้ว/ผ่านเกณฑ์: เขียว
+            cell.fill = fill(C.ok); cell.font = font(C.okText, false);
+          }
+        }
+      }
+    }
+  }
+  // ตรึงเลขที่+ชื่อนักเรียน (2 คอลัมน์แรก) และแถวหัวตาราง/คะแนนเต็ม/เกณฑ์ผ่าน
+  ws.views = [{ state:"frozen", xSplit:2, ySplit:headerRows, activeCell:"C"+(headerRows+1) }];
+}
+async function exportScoresExcel(){
   if(state.students.length===0 || state.assignments.length===0){ showToast("ยังไม่มีข้อมูลให้ดาวน์โหลด"); return; }
   const rows = buildScoreExportRows();
   const { room, name } = scoreExportFileBase();
-  if(typeof XLSX === "undefined"){
+  if(typeof ExcelJS === "undefined"){
     // ไลบรารี Excel โหลดไม่ขึ้น (ออฟไลน์/ถูกบล็อก) — สำรองเป็น CSV (มี BOM ให้ Excel อ่านภาษาไทยถูก)
     const csv = "\uFEFF" + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\r\n");
     const a = document.createElement("a");
@@ -5222,12 +5275,23 @@ function exportScoresExcel(){
     showToast("ดาวน์โหลดเป็น CSV แล้ว (โหลดตัวสร้าง Excel ไม่สำเร็จ)");
     return;
   }
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws["!cols"] = rows[0].map((_,i)=> i===0 ? {wch:8} : i===1 ? {wch:30} : {wch:16});
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, room.replace(/[\\/?*\[\]:]/g,"-").slice(0,31) || "คะแนนดิบ");
-  XLSX.writeFile(wb, name + ".xlsx");
-  showToast("ดาวน์โหลด Excel แล้ว ✅");
+  try{
+    const assigns = [...state.assignments].reverse();
+    const hasPass = assigns.some(a=>a.pass_score!==null && a.pass_score!==undefined);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(room.replace(/[\\/?*\[\]:]/g,"-").slice(0,31) || "คะแนนดิบ");
+    // ช่องว่าง (ยังไม่ให้คะแนน) ใส่เป็นเซลล์ว่างจริง ไม่ใช่ข้อความว่าง — คัดลอกไปตัดเกรดแล้วไม่ติดปัญหา
+    rows.forEach(r=>ws.addRow(r.map(c=> c==="" ? null : c)));
+    styleScoreWorksheet(ws, assigns, hasPass);
+    const buf = await wb.xlsx.writeBuffer();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+    a.download = name + ".xlsx"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    showToast("ดาวน์โหลด Excel แล้ว ✅");
+  }catch(e){
+    console.error(e);
+    showToast("สร้างไฟล์ Excel ไม่สำเร็จ ลองใหม่อีกครั้งนะ");
+  }
 }
 // คัดลอกทั้งตารางเป็นข้อความคั่นด้วย Tab — วางลง Excel/Google Sheets ได้ตรงช่อง หรือวางในแชทเพื่อให้วิเคราะห์ต่อ
 async function copyScoresTable(){
